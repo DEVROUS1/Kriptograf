@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../config/app_config.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/selected_coin_provider.dart';
+import '../providers/dashboard_provider.dart';
 
 class CoinSelector extends ConsumerStatefulWidget {
   const CoinSelector({super.key});
@@ -12,8 +13,11 @@ class CoinSelector extends ConsumerStatefulWidget {
 }
 
 class _CoinSelectorState extends ConsumerState<CoinSelector> {
-  void _showCoinMenu(BuildContext context, String currentSymbol) {
-    showDialog(
+  void _showCoinMenu(BuildContext context, String currentSymbol) async {
+    // Arama açıldığında grafiğin (iframe) pointer olaylarını yutmasını engellemek için state bildirimi:
+    ref.read(isSearchOpenProvider.notifier).state = true;
+    
+    await showDialog(
       context: context,
       builder: (context) {
         return _CoinSearchDialog(
@@ -25,6 +29,9 @@ class _CoinSelectorState extends ConsumerState<CoinSelector> {
         );
       },
     );
+    
+    // Dialog kapandı, pointer serbest
+    ref.read(isSearchOpenProvider.notifier).state = false;
   }
 
   @override

@@ -24,39 +24,9 @@ import '../widgets/scenario_widget.dart';
 import '../widgets/onchain_widget.dart';
 import 'markets_screen.dart';
 import 'portfolio_screen.dart';
+import '../providers/dashboard_provider.dart';
 
-// ── Sekme tanımları ────────────────────────────────────────────────────────
-
-enum DashTab {
-  panel,
-  analiz,
-  yapayZeka,
-  onchain,
-  piyasalar,
-  portfoy,
-}
-
-extension DashTabExt on DashTab {
-  String get etiket => switch (this) {
-        DashTab.panel => 'Panel',
-        DashTab.analiz => 'Analiz',
-        DashTab.yapayZeka => 'AI',
-        DashTab.onchain => 'On-Chain',
-        DashTab.piyasalar => 'Piyasalar',
-        DashTab.portfoy => 'Portföy',
-      };
-
-  IconData get ikon => switch (this) {
-        DashTab.panel => Icons.candlestick_chart_rounded,
-        DashTab.analiz => Icons.analytics_rounded,
-        DashTab.yapayZeka => Icons.auto_awesome_rounded,
-        DashTab.onchain => Icons.link_rounded,
-        DashTab.piyasalar => Icons.bar_chart_rounded,
-        DashTab.portfoy => Icons.account_balance_wallet_rounded,
-      };
-}
-
-// ── Ana ekran ──────────────────────────────────────────────────────────────
+// ── Yardımcı Araçlar ────────────────────────────────────────────────────────
 
 void _showSettingsInfo(BuildContext context) {
   showDialog(
@@ -85,37 +55,28 @@ void _showSettingsInfo(BuildContext context) {
   );
 }
 
-class DashboardScreen extends ConsumerStatefulWidget {
+// ── Ana Ekran (ConsumerWidget olarak yeniden tasarlandı) ───────────────────
+
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  ConsumerState<DashboardScreen> createState() => _DashboardState();
-}
-
-class _DashboardState extends ConsumerState<DashboardScreen> {
-  DashTab _aktif = DashTab.panel;
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Ekran genişliği 900px'den büyükse masaüstü, küçükse mobil mod.
     final genis = MediaQuery.sizeOf(context).width > 900;
 
     if (genis) {
-      return Scaffold(
+      return const Scaffold(
         backgroundColor: AppTheme.background,
         body: Column(children: [
-          const _TopBar(),
-          const ConnectionStatusWidget(),
-          Expanded(
-            child: _GenisDuzen(
-              aktif: _aktif,
-              onTabChanged: (t) => setState(() => _aktif = t),
-            ),
-          ),
+          _TopBar(),
+          ConnectionStatusWidget(),
+          Expanded(child: _GenisDuzen()),
         ]),
       );
     }
 
-    // Mobil
+    // Mobil Düzen
     return Scaffold(
       backgroundColor: AppTheme.background,
       appBar: AppBar(
@@ -135,45 +96,42 @@ class _DashboardState extends ConsumerState<DashboardScreen> {
           child: ConnectionStatusWidget(),
         ),
       ),
-      body: _MobilIcerik(aktif: _aktif),
-      bottomNavigationBar: _MobilNavBar(
-        aktif: _aktif,
-        onChanged: (t) => setState(() => _aktif = t),
-      ),
+      body: const _MobilIcerik(),
+      bottomNavigationBar: const _MobilNavBar(),
     );
   }
 }
 
 // ── Geniş ekran düzeni ─────────────────────────────────────────────────────
 
-class _GenisDuzen extends StatelessWidget {
-  const _GenisDuzen({required this.aktif, required this.onTabChanged});
-  final DashTab aktif;
-  final void Function(DashTab) onTabChanged;
+class _GenisDuzen extends ConsumerWidget {
+  const _GenisDuzen();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aktif = ref.watch(dashboardTabProvider);
+
     return Row(children: [
-      // Sol sidebar
-      _Sidebar(aktif: aktif, onTabChanged: onTabChanged),
-      // Ana içerik
-      Expanded(child: _GenisMerkez(aktif: aktif)),
-      // Sağ panel — sadece Panel ve Analiz sekmelerinde
+      // Sol sidebar (Menü)
+      const _Sidebar(),
+      // Ana içerik alanı (Grafikler vs.)
+      const Expanded(child: _GenisMerkez()),
+      // Sağ panel (Sadece analiz/panel durumunda aktiftir, IndexedStack ile yönetilir)
       if (aktif == DashTab.panel || aktif == DashTab.analiz)
-        _SagPanel(aktif: aktif),
+        const _SagPanel(),
     ]);
   }
 }
 
 // ── Sol Sidebar ────────────────────────────────────────────────────────────
 
-class _Sidebar extends StatelessWidget {
-  const _Sidebar({required this.aktif, required this.onTabChanged});
-  final DashTab aktif;
-  final void Function(DashTab) onTabChanged;
+class _Sidebar extends ConsumerWidget {
+  const _Sidebar();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aktif = ref.watch(dashboardTabProvider);
+
     return Container(
       width: 64,
       color: const Color(0xFF0C0D1E),
@@ -189,14 +147,14 @@ class _Sidebar extends StatelessWidget {
           ),
           child: const Icon(Icons.candlestick_chart_rounded, color: Colors.white, size: 18),
         ),
-        // Sekme butonları
+        // Sekme butonları döngüsü
         ...DashTab.values.map((tab) => _SidebarBtn(
               tab: tab,
               aktif: aktif == tab,
-              onTap: () => onTabChanged(tab),
+              onTap: () => ref.read(dashboardTabProvider.notifier).state = tab,
             )),
         const Spacer(),
-        // Ayarlar
+        // Ayarlar Butonu
         Padding(
           padding: const EdgeInsets.only(bottom: 6),
           child: IconButton(
@@ -255,125 +213,126 @@ class _SidebarBtn extends StatelessWidget {
   }
 }
 
-// ── Geniş ekran — merkez içerik ────────────────────────────────────────────
+// ── Geniş ekran — merkez içerik (Masaüstü Orta Ekranı) ──────────────────────
 
-class _GenisMerkez extends StatelessWidget {
-  const _GenisMerkez({required this.aktif});
-  final DashTab aktif;
+class _GenisMerkez extends ConsumerWidget {
+  const _GenisMerkez();
+
+  int getIndex(DashTab tab) {
+    switch (tab) {
+      case DashTab.panel:
+      case DashTab.analiz:
+        return 0; // İkisi de aynı ana grafiği (ortak widget) kullanır
+      case DashTab.yapayZeka: return 1;
+      case DashTab.onchain: return 2;
+      case DashTab.piyasalar: return 3;
+      case DashTab.portfoy: return 4;
+    }
+  }
 
   @override
-  Widget build(BuildContext context) {
-    return switch (aktif) {
-      DashTab.panel => const _PanelMerkez(),
-      DashTab.analiz => const _AnalizMerkez(),
-      DashTab.yapayZeka => const _YapayZekaMerkez(),
-      DashTab.onchain => const _OnchainMerkez(),
-      DashTab.piyasalar => const MarketsScreen(),
-      DashTab.portfoy => const PortfolioScreen(),
-    };
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aktif = ref.watch(dashboardTabProvider);
+
+    return IndexedStack(
+      index: getIndex(aktif),
+      children: const [
+        _MasaustuPanelAnalizOrtak(), // Index 0 (Hem Panel Hem Analiz için aynı iframe'i paylaştıran yapı)
+        _YapayZekaMerkez(),          // Index 1
+        _OnchainMerkez(),            // Index 2
+        MarketsScreen(),             // Index 3
+        PortfolioScreen(),           // Index 4
+      ],
+    );
+  }
+}
+
+// ── Masaüstü Panel ve Analiz Ortak Widget (İframe yeniden yaratılmasını engeller) ──
+
+class _MasaustuPanelAnalizOrtak extends ConsumerWidget {
+  const _MasaustuPanelAnalizOrtak();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aktif = ref.watch(dashboardTabProvider);
+
+    return Column(children: [
+      const Padding(
+        padding: EdgeInsets.fromLTRB(12, 10, 12, 0),
+        child: LivePriceWidget(),
+      ),
+      const SizedBox(height: 8),
+      const Padding(
+        padding: EdgeInsets.symmetric(horizontal: 12),
+        child: CoinSelector(),
+      ),
+      const SizedBox(height: 8),
+      Expanded(
+        child: Padding(
+          padding: EdgeInsets.fromLTRB(12, 0, 12, aktif == DashTab.panel ? 0 : 12),
+          child: const _ChartCard(), // <--- Iframe'in baştan render olmasını IndexedStack ve bu ortak yapı engeller!
+        ),
+      ),
+      if (aktif == DashTab.panel) ...[
+        const SizedBox(height: 8),
+        const Padding(
+          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
+          child: CvdWidget(),
+        ),
+      ],
+    ]);
   }
 }
 
 // ── Geniş ekran — sağ panel ────────────────────────────────────────────────
 
-class _SagPanel extends StatelessWidget {
-  const _SagPanel({required this.aktif});
-  final DashTab aktif;
+class _SagPanel extends ConsumerWidget {
+  const _SagPanel();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aktif = ref.watch(dashboardTabProvider);
+
     return SizedBox(
       width: 300,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(0, 10, 12, 12),
-        child: aktif == DashTab.analiz
-            ? const Column(children: [
-                SmcWidget(),
-                SizedBox(height: 10),
-                SupportResistanceWidget(),
-                SizedBox(height: 10),
-                AdvancedIndicatorsWidget(),
-              ])
-            : const Column(children: [
-                ScenarioWidget(),
-                SizedBox(height: 10),
-                AiSummaryWidget(),
-                SizedBox(height: 10),
-                SignalWidget(),
-                SizedBox(height: 10),
-                AlarmWidget(),
-                SizedBox(height: 10),
-                StressIndexWidget(),
-                SizedBox(height: 10),
-                FearGreedWidget(),
-                SizedBox(height: 10),
-                GlobalMarketsWidget(),
-                SizedBox(height: 10),
-                NewsSentimentWidget(),
-              ]),
+      child: IndexedStack(
+        index: aktif == DashTab.analiz ? 1 : 0,
+        children: const [
+          // Index 0: Panel Sağ Widget'ları
+          SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(0, 10, 12, 12),
+            child: Column(children: [
+              ScenarioWidget(),
+              SizedBox(height: 10),
+              AiSummaryWidget(),
+              SizedBox(height: 10),
+              SignalWidget(),
+              SizedBox(height: 10),
+              AlarmWidget(),
+              SizedBox(height: 10),
+              StressIndexWidget(),
+              SizedBox(height: 10),
+              FearGreedWidget(),
+              SizedBox(height: 10),
+              GlobalMarketsWidget(),
+              SizedBox(height: 10),
+              NewsSentimentWidget(),
+            ]),
+          ),
+          // Index 1: Analiz Sağ Widget'ları
+          SingleChildScrollView(
+            padding: EdgeInsets.fromLTRB(0, 10, 12, 12),
+            child: Column(children: [
+              SmcWidget(),
+              SizedBox(height: 10),
+              SupportResistanceWidget(),
+              SizedBox(height: 10),
+              AdvancedIndicatorsWidget(),
+            ]),
+          ),
+        ],
       ),
     );
-  }
-}
-
-// ── Panel merkez (grafik + CVD) ────────────────────────────────────────────
-
-class _PanelMerkez extends StatelessWidget {
-  const _PanelMerkez();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(children: [
-      Padding(
-        padding: EdgeInsets.fromLTRB(12, 10, 12, 0),
-        child: LivePriceWidget(),
-      ),
-      SizedBox(height: 8),
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12),
-        child: CoinSelector(),
-      ),
-      SizedBox(height: 8),
-      Expanded(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 0),
-          child: _ChartCard(),
-        ),
-      ),
-      SizedBox(height: 8),
-      Padding(
-        padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-        child: CvdWidget(),
-      ),
-    ]);
-  }
-}
-
-// ── Analiz merkez ──────────────────────────────────────────────────────────
-
-class _AnalizMerkez extends StatelessWidget {
-  const _AnalizMerkez();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(children: [
-      Padding(
-        padding: EdgeInsets.fromLTRB(12, 10, 12, 0),
-        child: LivePriceWidget(),
-      ),
-      SizedBox(height: 8),
-      Padding(
-        padding: EdgeInsets.symmetric(horizontal: 12),
-        child: CoinSelector(),
-      ),
-      SizedBox(height: 8),
-      Expanded(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(12, 0, 12, 12),
-          child: _ChartCard(),
-        ),
-      ),
-    ]);
   }
 }
 
@@ -425,16 +384,20 @@ class _OnchainMerkez extends StatelessWidget {
   }
 }
 
-// ── Mobil içerik ───────────────────────────────────────────────────────────
+// ── Mobil içerik (Telefonda Ana Ekran Düzeni) ──────────────────────────────
 
-class _MobilIcerik extends StatelessWidget {
-  const _MobilIcerik({required this.aktif});
-  final DashTab aktif;
+class _MobilIcerik extends ConsumerWidget {
+  const _MobilIcerik();
 
   @override
-  Widget build(BuildContext context) {
-    return switch (aktif) {
-      DashTab.panel => const SingleChildScrollView(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aktif = ref.watch(dashboardTabProvider);
+
+    return IndexedStack(
+      index: DashTab.values.indexOf(aktif),
+      children: const [
+        // Tab 0: Panel
+        SingleChildScrollView(
           padding: EdgeInsets.all(12),
           child: Column(children: [
             LivePriceWidget(),
@@ -452,7 +415,8 @@ class _MobilIcerik extends StatelessWidget {
             FearGreedWidget(),
           ]),
         ),
-      DashTab.analiz => const SingleChildScrollView(
+        // Tab 1: Analiz
+        SingleChildScrollView(
           padding: EdgeInsets.all(12),
           child: Column(children: [
             SmcWidget(),
@@ -464,7 +428,8 @@ class _MobilIcerik extends StatelessWidget {
             SignalWidget(),
           ]),
         ),
-      DashTab.yapayZeka => const SingleChildScrollView(
+        // Tab 2: Yapay Zeka
+        SingleChildScrollView(
           padding: EdgeInsets.all(12),
           child: Column(children: [
             ScenarioWidget(),
@@ -474,7 +439,8 @@ class _MobilIcerik extends StatelessWidget {
             NewsSentimentWidget(),
           ]),
         ),
-      DashTab.onchain => const SingleChildScrollView(
+        // Tab 3: On-Chain
+        SingleChildScrollView(
           padding: EdgeInsets.all(12),
           child: Column(children: [
             OnchainWidget(),
@@ -488,21 +454,24 @@ class _MobilIcerik extends StatelessWidget {
             CorrelationWidget(),
           ]),
         ),
-      DashTab.piyasalar => const MarketsScreen(),
-      DashTab.portfoy => const PortfolioScreen(),
-    };
+        // Tab 4: Piyasalar
+        MarketsScreen(),
+        // Tab 5: Portfoy
+        PortfolioScreen(),
+      ],
+    );
   }
 }
 
-// ── Mobil bottom nav ───────────────────────────────────────────────────────
+// ── Mobil bottom nav (Telefonun Alt Menüsü) ────────────────────────────────
 
-class _MobilNavBar extends StatelessWidget {
-  const _MobilNavBar({required this.aktif, required this.onChanged});
-  final DashTab aktif;
-  final void Function(DashTab) onChanged;
+class _MobilNavBar extends ConsumerWidget {
+  const _MobilNavBar();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final aktif = ref.watch(dashboardTabProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface,
@@ -519,11 +488,12 @@ class _MobilNavBar extends StatelessWidget {
                   : Colors.white.withValues(alpha: 0.28);
               return Expanded(
                 child: GestureDetector(
-                  onTap: () => onChanged(tab),
+                  onTap: () => ref.read(dashboardTabProvider.notifier).state = tab,
                   behavior: HitTestBehavior.opaque,
                   child: AnimatedContainer(
                     duration: const Duration(milliseconds: 150),
                     decoration: BoxDecoration(
+                      // Sadece seçiliyken tepesinde ana renk ince bir çizgi göster
                       border: secili
                           ? const Border(
                               top: BorderSide(
@@ -554,7 +524,7 @@ class _MobilNavBar extends StatelessWidget {
   }
 }
 
-// ── TopBar ─────────────────────────────────────────────────────────────────
+// ── TopBar (Uygulamanın En Üst Çubuğu) ─────────────────────────────────────
 
 class _TopBar extends StatelessWidget {
   const _TopBar();
@@ -577,6 +547,8 @@ class _TopBar extends StatelessWidget {
     );
   }
 }
+
+// ── Tepe Çubuğu Logosu (KriptoGraf PRO Logosu) ─────────────────────────────
 
 class _AppBarTitle extends StatelessWidget {
   const _AppBarTitle();
@@ -608,13 +580,15 @@ class _AppBarTitle extends StatelessWidget {
   }
 }
 
-// ── Grafik kartı ───────────────────────────────────────────────────────────
+// ── Grafik kartı Z-INDEX Yönetimi (Iframe Hata Çözümü) ─────────────────────
 
 class _ChartCard extends ConsumerWidget {
   const _ChartCard();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final isSearchOpen = ref.watch(isSearchOpenProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: AppTheme.surface,
@@ -623,7 +597,20 @@ class _ChartCard extends ConsumerWidget {
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
-        child: const TradingViewChart(),
+        child: Stack(
+          children: [
+            const Positioned.fill(child: TradingViewChart()),
+            
+            // Eğer arama (Overlay) açıksa, grafiğin pointer events (hit testing) yutmasını
+            // kalıcı olarak engellemek adına görünmez bir Stack katmanı atarız!
+            if (isSearchOpen)
+              Positioned.fill(
+                child: Container(
+                  color: Colors.transparent, // Transparan kalkan (Pointer blocker)
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
