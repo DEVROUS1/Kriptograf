@@ -20,13 +20,22 @@ async def _piyasa_verisi_topla(symbol: str) -> dict:
 
     t = ticker.json()
     k = klines.json()
-    closes = [float(x[4]) for x in k]
-    highs = [float(x[2]) for x in k]
-    lows = [float(x[3]) for x in k]
-
-    fiyat = float(t["lastPrice"])
-    degisim = float(t["priceChangePercent"])
-    hacim = float(t["quoteVolume"])
+    
+    if "lastPrice" not in t:
+        fiyat, degisim, hacim = 0.0, 0.0, 0.0
+    else:
+        fiyat = float(t.get("lastPrice", 0.0))
+        degisim = float(t.get("priceChangePercent", 0.0))
+        hacim = float(t.get("quoteVolume", 0.0))
+        
+    if not isinstance(k, list) or len(k) == 0:
+        closes = [0.0] * 50
+        highs = [0.0] * 50
+        lows = [0.0] * 50
+    else:
+        closes = [float(x[4]) for x in k]
+        highs = [float(x[2]) for x in k]
+        lows = [float(x[3]) for x in k]
 
     # RSI hesapla
     gains = [max(closes[i] - closes[i-1], 0) for i in range(1, 15)]
@@ -38,8 +47,8 @@ async def _piyasa_verisi_topla(symbol: str) -> dict:
     # ATR
     trs = [max(highs[i] - lows[i], abs(highs[i] - closes[i-1]),
                abs(lows[i] - closes[i-1])) for i in range(1, 15)]
-    atr = sum(trs) / 14
-    atr_yuzde = round(atr / fiyat * 100, 2)
+    atr = sum(trs) / 14 if len(trs) >= 14 else 0.0
+    atr_yuzde = round(atr / fiyat * 100, 2) if fiyat != 0.0 else 0.0
 
     # Trend
     ema20 = sum(closes[-20:]) / 20
@@ -122,12 +131,21 @@ Türkçe yaz. İhtimallerin toplamı 100 olsun. Gerçekçi fiyat hedefleri ver."
         "response_format": {"type": "json_object"},
     }
 
-    async with httpx.AsyncClient(timeout=20) as c:
-        r = await c.post(GROQ_API_URL, json=body, headers=headers)
-        r.raise_for_status()
-        import json
-        icerik = r.json()["choices"][0]["message"]["content"]
-        senaryolar = json.loads(icerik)
+    try:
+        async with httpx.AsyncClient(timeout=20) as c:
+            r = await c.post(GROQ_API_URL, json=body, headers=headers)
+            r.raise_for_status()
+            import json
+            icerik = r.json()["choices"][0]["message"]["content"]
+            senaryolar = json.loads(icerik)
+    except Exception as e:
+        senaryolar = {
+            "boga": {"baslik": "Hata", "ihtimal": 0, "hedef": 0, "tetikleyici": "-", "aciklama": "Veri çekilemedi."},
+            "ayi": {"baslik": "Hata", "ihtimal": 0, "hedef": 0, "tetikleyici": "-", "aciklama": "Veri çekilemedi."},
+            "yatay": {"baslik": "Hata", "ihtimal": 0, "aralik_ust": 0, "aralik_alt": 0, "aciklama": f"AI Analizi Hatası: {e}"},
+            "genel_yorum": "AI bağlantı veya limit sorunu yaşanıyor.",
+            "kritik_seviye": 0
+        }
 
     return {
         "senaryolar": senaryolar,

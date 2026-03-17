@@ -10,7 +10,19 @@ router = APIRouter()
 @router.get("/api/senaryo/{symbol}")
 async def senaryo(symbol: str):
     if not settings.groq_api_key:
-        raise HTTPException(status_code=503, detail="GROQ_API_KEY eksik")
+        from datetime import datetime
+        return {
+            "senaryolar": {
+                "boga": {"baslik": "Bekleniyor", "ihtimal": 0, "hedef": 0, "tetikleyici": "-", "aciklama": "GROQ_API_KEY eksik."},
+                "ayi": {"baslik": "Bekleniyor", "ihtimal": 0, "hedef": 0, "tetikleyici": "-", "aciklama": "GROQ_API_KEY eksik."},
+                "yatay": {"baslik": "Bekleniyor", "ihtimal": 0, "aralik_ust": 0, "aralik_alt": 0, "aciklama": "GROQ_API_KEY eksik."},
+                "genel_yorum": "AI analizi yapılabilmesi için API anahtarı gerekiyor.",
+                "kritik_seviye": 0
+            },
+            "piyasa_verisi": {},
+            "sembol": symbol.upper(),
+            "olusturulma": datetime.now().strftime("%H:%M")
+        }
     key = f"senaryo:{symbol.upper()}"
     cached = await get_cached(key)
     if cached:
