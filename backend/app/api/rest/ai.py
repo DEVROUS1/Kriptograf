@@ -12,10 +12,15 @@ async def _piyasa_verisi(symbol: str) -> dict:
     usdt = symbol.upper() + "USDT"
 
     async def fiyat():
-        async with httpx.AsyncClient(timeout=5) as c:
-            r = await c.get(f"https://api.binance.com/api/v3/ticker/24hr?symbol={usdt}")
-            d = r.json()
-            return float(d["lastPrice"]), float(d["priceChangePercent"])
+        try:
+            async with httpx.AsyncClient(timeout=5) as c:
+                r = await c.get(f"https://api.binance.com/api/v3/ticker/24hr?symbol={usdt}")
+                d = r.json()
+                if "lastPrice" not in d:
+                    return 0.0, 0.0
+                return float(d.get("lastPrice", 0.0)), float(d.get("priceChangePercent", 0.0))
+        except Exception:
+            return 0.0, 0.0
 
     async def fonlama():
         try:
