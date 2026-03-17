@@ -58,6 +58,33 @@ extension DashTabExt on DashTab {
 
 // ── Ana ekran ──────────────────────────────────────────────────────────────
 
+void _showSettingsInfo(BuildContext context) {
+  showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      backgroundColor: AppTheme.surface,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
+      title: const Row(
+        children: [
+          Icon(Icons.construction_rounded, color: AppTheme.primary),
+          SizedBox(width: 10),
+          Text('Yapım Aşamasında', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        ],
+      ),
+      content: const Text(
+        'Ayarlar modülü şu anda Kriptograf sistem mühendisleri tarafından geliştiriliyor. Yakında aktif edilecek.',
+        style: TextStyle(color: Colors.white70),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Anladım', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
+        ),
+      ],
+    ),
+  );
+}
+
 class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
@@ -94,6 +121,13 @@ class _DashboardState extends ConsumerState<DashboardScreen> {
       appBar: AppBar(
         backgroundColor: AppTheme.background,
         title: const _AppBarTitle(),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.settings_rounded, size: 22, color: Colors.white.withValues(alpha: 0.4)),
+            onPressed: () => _showSettingsInfo(context),
+          ),
+          const SizedBox(width: 8),
+        ],
         elevation: 0,
         scrolledUnderElevation: 0,
         bottom: const PreferredSize(
@@ -164,9 +198,13 @@ class _Sidebar extends StatelessWidget {
         const Spacer(),
         // Ayarlar
         Padding(
-          padding: const EdgeInsets.only(bottom: 12),
-          child: Icon(Icons.settings_rounded, size: 18,
-              color: Colors.white.withValues(alpha: 0.2)),
+          padding: const EdgeInsets.only(bottom: 6),
+          child: IconButton(
+            icon: Icon(Icons.settings_rounded, size: 20, color: Colors.white.withValues(alpha: 0.3)),
+            onPressed: () => _showSettingsInfo(context),
+            tooltip: 'Ayarlar',
+            hoverColor: Colors.white.withValues(alpha: 0.05),
+          ),
         ),
       ]),
     );

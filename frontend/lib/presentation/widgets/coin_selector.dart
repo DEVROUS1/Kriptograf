@@ -4,38 +4,56 @@ import '../../config/app_config.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/selected_coin_provider.dart';
 
-class CoinSelector extends ConsumerWidget {
+class CoinSelector extends ConsumerStatefulWidget {
   const CoinSelector({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CoinSelector> createState() => _CoinSelectorState();
+}
+
+class _CoinSelectorState extends ConsumerState<CoinSelector> {
+  void _showCoinMenu(BuildContext context, String currentSymbol) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return _CoinSearchDialog(
+          currentSymbol: currentSymbol,
+          onSelected: (sym) {
+            ref.read(selectedCoinProvider.notifier).setSymbol(sym);
+            Navigator.of(context).pop();
+          },
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final coin = ref.watch(selectedCoinProvider);
 
     return Row(children: [
       Expanded(
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 2),
-          decoration: BoxDecoration(
-            color: AppTheme.surface,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-          ),
-          child: DropdownButtonHideUnderline(
-            child: DropdownButton<String>(
-              value: coin.symbol,
-              dropdownColor: AppTheme.surfaceVariant,
-              style: const TextStyle(
-                  color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-              icon: Icon(Icons.expand_more_rounded,
-                  color: Colors.white.withValues(alpha: 0.4), size: 18),
-              items: AppConfig.supportedSymbols
-                  .map((s) => DropdownMenuItem(
-                        value: s,
-                        child: Text(s.toUpperCase().replaceAll('USDT', '/USDT')),
-                      ))
-                  .toList(),
-              onChanged: (s) =>
-                  ref.read(selectedCoinProvider.notifier).setSymbol(s!),
+        child: InkWell(
+          onTap: () => _showCoinMenu(context, coin.symbol),
+          borderRadius: BorderRadius.circular(10),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: AppTheme.surface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  coin.symbol.toUpperCase().replaceAll('USDT', '/USDT'),
+                  style: const TextStyle(
+                      color: Colors.white, fontSize: 13, fontWeight: FontWeight.w800),
+                ),
+                Icon(Icons.expand_more_rounded,
+                    color: Colors.white.withValues(alpha: 0.4), size: 18),
+              ],
             ),
           ),
         ),
@@ -44,13 +62,13 @@ class CoinSelector extends ConsumerWidget {
       ...['1m', '5m', '15m', '1h', '4h', '1d'].map((i) {
         final isSelected = i == coin.interval;
         final color =
-            isSelected ? AppTheme.primary : Colors.white.withValues(alpha: 0.3);
+            isSelected ? AppTheme.primary : Colors.white.withValues(alpha: 0.4);
         return GestureDetector(
           onTap: () => ref.read(selectedCoinProvider.notifier).setInterval(i),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 150),
             margin: const EdgeInsets.only(left: 4),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             decoration: BoxDecoration(
               color: isSelected
                   ? AppTheme.primary.withValues(alpha: 0.2)
@@ -67,12 +85,108 @@ class CoinSelector extends ConsumerWidget {
               style: TextStyle(
                 color: color,
                 fontSize: 12,
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w400,
+                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
               ),
             ),
           ),
         );
       }),
     ]);
+  }
+}
+
+class _CoinSearchDialog extends StatefulWidget {
+  final String currentSymbol;
+  final ValueChanged<String> onSelected;
+
+  const _CoinSearchDialog({required this.currentSymbol, required this.onSelected});
+
+  @override
+  State<_CoinSearchDialog> createState() => _CoinSearchDialogState();
+}
+
+class _CoinSearchDialogState extends State<_CoinSearchDialog> {
+  String _query = '';
+  
+  @override
+  Widget build(BuildContext context) {
+    final filtered = AppConfig.supportedSymbols
+        .where((s) => s.toLowerCase().contains(_query.toLowerCase()))
+        .toList();
+
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      child: Container(
+        width: 400,
+        height: 600,
+        decoration: BoxDecoration(
+          color: AppTheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.6),
+              blurRadius: 30,
+              spreadRadius: 10,
+            )
+          ],
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                autofocus: true,
+                style: const TextStyle(color: Colors.white, fontSize: 16),
+                decoration: InputDecoration(
+                  hintText: 'Coin Ara (Örn: BTC)',
+                  hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
+                  prefixIcon: Icon(Icons.search, color: Colors.white.withValues(alpha: 0.4)),
+                  filled: true,
+                  fillColor: AppTheme.background,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                onChanged: (val) => setState(() => _query = val),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  final sym = filtered[index];
+                  final isSelected = sym == widget.currentSymbol;
+                  return ListTile(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    tileColor: isSelected ? AppTheme.primary.withValues(alpha: 0.15) : null,
+                    leading: CircleAvatar(
+                      backgroundColor: isSelected ? AppTheme.primary : AppTheme.surfaceVariant,
+                      radius: 18,
+                      child: Icon(
+                        Icons.currency_bitcoin_rounded,
+                        size: 20,
+                        color: isSelected ? Colors.white : Colors.white.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    title: Text(
+                      sym.toUpperCase().replaceAll('USDT', '/USDT'),
+                      style: TextStyle(
+                        color: isSelected ? AppTheme.primary : Colors.white,
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                    onTap: () => widget.onSelected(sym),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
