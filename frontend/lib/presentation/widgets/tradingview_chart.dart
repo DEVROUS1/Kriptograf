@@ -7,7 +7,10 @@ import '../../core/theme/app_theme.dart';
 import '../providers/selected_coin_provider.dart';
 
 class TradingViewChart extends ConsumerStatefulWidget {
-  const TradingViewChart({super.key});
+  final String? symbol;
+  final String? interval;
+  
+  const TradingViewChart({super.key, this.symbol, this.interval});
 
   @override
   ConsumerState<TradingViewChart> createState() =>
@@ -37,13 +40,16 @@ class _TradingViewChartState extends ConsumerState<TradingViewChart> with Automa
   @override
   void initState() {
     super.initState();
-    _viewId = 'tv-chart-${DateTime.now().millisecondsSinceEpoch}';
+    _viewId = 'tv-chart-\${DateTime.now().millisecondsSinceEpoch}-\${widget.symbol ?? "main"}-\${UniqueKey().toString()}';
     _registerView();
   }
 
   void _registerView() {
     final coin = ref.read(selectedCoinProvider);
-    _iframe = _buildIframe(coin.symbol, coin.interval);
+    final currentSymbol = widget.symbol ?? coin.symbol;
+    final currentInterval = widget.interval ?? coin.interval;
+
+    _iframe = _buildIframe(currentSymbol, currentInterval);
 
     ui_web.platformViewRegistry.registerViewFactory(
       _viewId,
@@ -146,15 +152,28 @@ window.addEventListener('message', function(e) {
   }
 
   @override
+  void didUpdateWidget(TradingViewChart oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.symbol != oldWidget.symbol || widget.interval != oldWidget.interval) {
+      if (widget.symbol != null && widget.interval != null) {
+        _updateChart(widget.symbol!, widget.interval!);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     super.build(context); // From AutomaticKeepAliveClientMixin
     
-    ref.listen(selectedCoinProvider, (prev, next) {
-      if (prev?.symbol != next.symbol ||
-          prev?.interval != next.interval) {
-        _updateChart(next.symbol, next.interval);
-      }
-    });
+    // Only listen to global selected coin if this chart is the main chart 
+    if (widget.symbol == null && widget.interval == null) {
+      ref.listen(selectedCoinProvider, (prev, next) {
+        if (prev?.symbol != next.symbol ||
+            prev?.interval != next.interval) {
+          _updateChart(next.symbol, next.interval);
+        }
+      });
+    }
 
     return Container(
       color: AppTheme.surface,
