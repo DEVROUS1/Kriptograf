@@ -66,7 +66,12 @@ async def _piyasa_verisi(symbol: str) -> dict:
 @router.get("/api/ai-ozet/{symbol}")
 async def ai_ozet(symbol: str):
     if not settings.groq_api_key:
-        raise HTTPException(status_code=503, detail="GROQ_API_KEY eksik")
+        return {
+            "ozet": "Yapay zeka analisti kullanılmıyor. Lütfen sunucu ayarlarından (Render Environment Variables) GROQ_API_KEY değişkenini ekleyin.",
+            "sembol": symbol.upper(),
+            "olusturulma": "Şimdi",
+            "model": "Sistem",
+        }
 
     key = f"ai_ozet:{symbol.upper()}"
     cached = await get_cached(key)
@@ -74,16 +79,24 @@ async def ai_ozet(symbol: str):
         return cached
 
     veri = await _piyasa_verisi(symbol)
-    result = await generate_market_summary(
-        symbol=symbol.upper(),
-        price=veri["price"],
-        change_24h=veri["change"],
-        rsi=veri["rsi"],
-        funding_rate=veri["funding"],
-        whale_pressure="ALIŞ",
-        fear_greed=veri["fear_greed"],
-        api_key=settings.groq_api_key,
-    )
+    try:
+        result = await generate_market_summary(
+            symbol=symbol.upper(),
+            price=veri["price"],
+            change_24h=veri["change"],
+            rsi=veri["rsi"],
+            funding_rate=veri["funding"],
+            whale_pressure="ALIŞ",
+            fear_greed=veri["fear_greed"],
+            api_key=settings.groq_api_key,
+        )
+    except Exception as e:
+        result = {
+            "ozet": f"AI verisi oluşturulamadı: Lütfen API anahtarınızı (veya Groq limitlerinizi) kontrol edin. Detay: {str(e)}",
+            "sembol": symbol.upper(),
+            "olusturulma": "Hatali",
+            "model": "Hata",
+        }
 
     await set_cached(key, result, ttl=300)
     return result
