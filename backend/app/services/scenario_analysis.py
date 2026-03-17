@@ -75,16 +75,19 @@ async def _piyasa_verisi_topla(symbol: str) -> dict:
 async def senaryo_analizi(symbol: str, api_key: str) -> dict:
     veri = await _piyasa_verisi_topla(symbol)
 
-    prompt = f"""Sen dünya sınıfında bir kripto para analistisisin. {symbol} için aşağıdaki verileri analiz et ve tam olarak 3 senaryo üret. JSON formatında yanıt ver, başka hiçbir şey yazma.
+    prompt = f"""Sen dünya sınıfında bir kripto para analistisisin. ŞU ANKİ GERÇEK {symbol} FİYATI: ${veri['fiyat']:,.6f}
+Aşağıdaki verileri analiz et ve tam olarak 3 senaryo üret. Hedef fiyatları belirlerken MUTLAKA şu anki fiyatı (${veri['fiyat']:,.6f}) baz al.
+JSON formatında yanıt ver, başka hiçbir şey yazma.
 
 VERİ:
-- Fiyat: ${veri['fiyat']:,.2f}
+- Sembol: {symbol}
+- Mevcut Fiyat: ${veri['fiyat']:,.6f}
 - 24s Değişim: {veri['degisim_24h']:+.2f}%
 - RSI: {veri['rsi']}
 - ATR: %{veri['atr_yuzde']} (volatilite)
-- Trend: {veri['trend']} (EMA20: ${veri['ema20']:,.2f})
-- 20 mum High: ${veri['son_high']:,.2f}
-- 20 mum Low: ${veri['son_low']:,.2f}
+- Trend: {veri['trend']} (EMA20: ${veri['ema20']:,.6f})
+- 20 mum High: ${veri['son_high']:,.6f}
+- 20 mum Low: ${veri['son_low']:,.6f}
 - Korku/Açgözlülük: {veri['fear_greed']}/100
 
 Şu JSON formatını kullan:
@@ -92,29 +95,33 @@ VERİ:
   "boga": {{
     "baslik": "kısa başlık",
     "ihtimal": 45,
-    "hedef": 75000,
+    "hedef": 123.45,
     "tetikleyici": "bu senaryoyu tetikleyecek şey",
     "aciklama": "2 cümle açıklama"
   }},
   "ayi": {{
     "baslik": "kısa başlık",
     "ihtimal": 35,
-    "hedef": 65000,
+    "hedef": 100.10,
     "tetikleyici": "bu senaryoyu tetikleyecek şey",
     "aciklama": "2 cümle açıklama"
   }},
   "yatay": {{
     "baslik": "kısa başlık",
     "ihtimal": 20,
-    "aralik_ust": 72000,
-    "aralik_alt": 68000,
+    "aralik_ust": 115.00,
+    "aralik_alt": 105.00,
     "aciklama": "2 cümle açıklama"
   }},
   "genel_yorum": "Piyasa hakkında tek cümlelik genel yorum",
-  "kritik_seviye": 70000
+  "kritik_seviye": 110.00
 }}
 
-Türkçe yaz. İhtimallerin toplamı 100 olsun. Gerçekçi fiyat hedefleri ver."""
+ÖNEMLİ KURALLAR:
+1. Türkçe yaz ve sadece JSON nesnesi döndür.
+2. Örnekteki rakamları (123.45, 75000 vb.) KOPYALAMA. Kendi analizine göre hedefler belirle.
+3. İhtimallerin toplamı tam olarak 100 olmalıdır.
+4. "hedef", "aralik_ust", "aralik_alt" ve "kritik_seviye" fiyatlarını belirlerken KESİNLİKLE ŞU ANKİ GÜNCEL FİYATI (${veri['fiyat']:,.6f}) BAZ AL! (Örneğin düşük bir altcoin için binlerce dolar hedef verme)."""
 
     headers = {
         "Authorization": f"Bearer {api_key}",
