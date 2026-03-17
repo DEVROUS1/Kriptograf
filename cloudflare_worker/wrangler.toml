@@ -1,0 +1,9 @@
+name = "kriptograf-ping"
+main = "ping_worker.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+BACKEND_URL = "https://kriptograf-backend.onrender.com"
+
+[triggers]
+crons = ["*/5 * * * *"]
