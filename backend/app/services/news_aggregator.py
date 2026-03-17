@@ -1,5 +1,19 @@
 import feedparser
+import httpx
+import urllib.parse
 from app.services.cache import get_cache, set_cache
+
+async def _translate_to_tr(text: str) -> str:
+    if not text:
+        return text
+    try:
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q={urllib.parse.quote(text)}"
+        async with httpx.AsyncClient(timeout=4) as c:
+            r = await c.get(url)
+            data = r.json()
+            return "".join([i[0] for i in data[0] if i[0]])
+    except Exception:
+        return text
 
 async def get_news(lang: str = "tr"):
     cache_key = f"crypto_news_{lang}"
@@ -19,8 +33,10 @@ async def get_news(lang: str = "tr"):
         elif any(word in title_lower for word in ["bear", "crash", "down", "low", "drop", "plunge", "selloff"]):
             sentiment = "NEGATİF"
 
+        translated_title = await _translate_to_tr(title)
+
         news_list.append({
-            "title": title,
+            "title": translated_title,
             "url": entry.link,
             "source": "CoinDesk",
             "published_at": entry.published,

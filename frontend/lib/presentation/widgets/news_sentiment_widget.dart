@@ -50,6 +50,20 @@ class _Body extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (data.containsKey('durum') && data['durum'] == 'hata') {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Center(
+          child: Text('Haber sunucusuna ulaşılamadı.',
+              style: TextStyle(color: AppTheme.bearish, fontSize: 11)),
+        ),
+      );
+    }
+
+    if (!data.containsKey('istatistik') || data['istatistik'] == null) {
+      return const SizedBox.shrink();
+    }
+
     final ist = data['istatistik'] as Map<String, dynamic>;
     final poz = (ist['pozitif_yuzde'] as num).toInt();
     final genel = ist['genel_duygu'] as String;

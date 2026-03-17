@@ -1,6 +1,7 @@
 import httpx
 import feedparser
 import asyncio
+import urllib.parse
 from datetime import datetime
 
 HABER_KAYNAKLARI = [
@@ -32,21 +33,38 @@ def _duygu(baslik: str) -> str:
     return "NÖTR"
 
 
+async def _translate_to_tr(text: str) -> str:
+    if not text:
+        return text
+    try:
+        url = f"https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=tr&dt=t&q={urllib.parse.quote(text)}"
+        async with httpx.AsyncClient(timeout=4) as c:
+            r = await c.get(url)
+            data = r.json()
+            return "".join([i[0] for i in data[0] if i[0]])
+    except Exception:
+        return text
+
 async def _fetch_feed(url: str) -> list[dict]:
     try:
         async with httpx.AsyncClient(timeout=8) as c:
-            r = await c.get(url, headers={"User-Agent": "KriptoGraf/1.0"})
+            r = await c.get(url, headers={"User-Agent": "Mozilla/5.0"})
         feed = feedparser.parse(r.text)
-        return [
-            {
-                "baslik": e.get("title", ""),
+        
+        results = []
+        for e in feed.entries[:5]:
+            baslik = e.get("title", "")
+            if "coindesk" in url.lower() or "cointelegraph" in url.lower():
+                baslik = await _translate_to_tr(baslik)
+                
+            results.append({
+                "baslik": baslik,
                 "link": e.get("link", ""),
                 "kaynak": feed.feed.get("title", url.split("/")[2]),
                 "zaman": e.get("published", ""),
-                "duygu": _duygu(e.get("title", "")),
-            }
-            for e in feed.entries[:5]
-        ]
+                "duygu": _duygu(baslik),
+            })
+        return results
     except Exception:
         return []
 
