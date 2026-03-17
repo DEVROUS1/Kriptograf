@@ -6,7 +6,7 @@ GROQ_MODEL = "llama-3.3-70b-versatile"
 
 
 async def _piyasa_verisi_topla(symbol: str) -> dict:
-    usdt = symbol.upper() + "USDT"
+    usdt = symbol.upper() if "USDT" in symbol.upper() else symbol.upper() + "USDT"
     async with httpx.AsyncClient(timeout=10) as c:
         ticker = await c.get(f"https://api.binance.com/api/v3/ticker/24hr?symbol={usdt}")
         klines = await c.get(

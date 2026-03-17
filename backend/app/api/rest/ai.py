@@ -9,7 +9,7 @@ router = APIRouter()
 
 
 async def _piyasa_verisi(symbol: str) -> dict:
-    usdt = symbol.upper() + "USDT"
+    usdt = symbol.upper() if "USDT" in symbol.upper() else symbol.upper() + "USDT"
 
     async def fiyat():
         try:

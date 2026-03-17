@@ -15,7 +15,7 @@ async def hesapla_portfoy(varliklar: list[dict], usd_try: float = 1.0) -> dict:
 
     async def fiyat(symbol: str) -> float:
         try:
-            usdt = symbol.upper() + "USDT"
+            usdt = symbol.upper() if "USDT" in symbol.upper() else symbol.upper() + "USDT"
             async with httpx.AsyncClient(timeout=5) as c:
                 r = await c.get(f"https://api.binance.com/api/v3/ticker/price?symbol={usdt}")
                 return float(r.json()["price"])
