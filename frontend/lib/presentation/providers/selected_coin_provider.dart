@@ -17,7 +17,7 @@ class CoinSelection {
 
 class SelectedCoinNotifier extends StateNotifier<CoinSelection> {
   SelectedCoinNotifier()
-      : super(const CoinSelection(symbol: 'btcusdt', interval: '1m'));
+      : super(const CoinSelection(symbol: 'btcusdt', interval: '15m'));
 
   void setSymbol(String symbol) =>
       state = state.copyWith(symbol: symbol.toLowerCase());

@@ -90,7 +90,7 @@ function createTVWidget(symbol, interval) {
     locale: "tr",
     toolbar_bg: "#0F1020",
     enable_publishing: false,
-    hide_top_toolbar: false,
+    hide_top_toolbar: true,
     hide_legend: false,
     save_image: false,
     backgroundColor: "#0F1020",

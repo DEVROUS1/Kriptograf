@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:pointer_interceptor/pointer_interceptor.dart';
 import '../../config/app_config.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/selected_coin_provider.dart';
@@ -138,10 +139,11 @@ class _CoinSearchDialogState extends State<_CoinSearchDialog> {
         .where((s) => s.toLowerCase().contains(_query.toLowerCase()))
         .toList();
 
-    return Container(
-      width: double.maxFinite,
-      constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
-      decoration: BoxDecoration(
+    return PointerInterceptor(
+      child: Container(
+        width: double.maxFinite,
+        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
+        decoration: BoxDecoration(
         color: AppTheme.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
@@ -208,6 +210,7 @@ class _CoinSearchDialogState extends State<_CoinSearchDialog> {
             ),
           ],
         ),
-      );
+      ),
+    );
   }
 }
