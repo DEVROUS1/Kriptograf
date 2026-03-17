@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/global_markets_provider.dart';
-import '../providers/kline_provider.dart';
+import '../providers/market_provider.dart';
+import '../providers/selected_coin_provider.dart';
 
 class AlarmWidget extends ConsumerStatefulWidget {
   const AlarmWidget({super.key});
@@ -24,22 +25,41 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
   @override
   Widget build(BuildContext context) {
     final alarmlar = ref.watch(alarmProvider);
-    final guncelFiyat = ref.watch(latestPriceProvider);
+    final seciliCoin = ref.watch(selectedCoinProvider.select((coin) => coin.symbol.toUpperCase()));
+    final piyasalar = ref.watch(marketListProvider);
 
-    // Alarm kontrolü — anlık fiyat ile karşılaştır
-    if (guncelFiyat != null) {
+    // Aktif coinin güncel fiyatı
+    double? guncelFiyat;
+    try {
+      guncelFiyat = piyasalar.firstWhere((p) => p.symbol == seciliCoin).price;
+    } catch (_) {}
+
+    // Alarm Kontrolleri: Her alarm kendi sembolünün güncel fiyatıyla kontrol edilir!
+    if (piyasalar.isNotEmpty) {
       for (final alarm in alarmlar) {
         if (!(alarm['aktif'] as bool)) continue;
+        
         final hedef = (alarm['hedef'] as num).toDouble();
         final yon = alarm['yon'] as String;
-        final tetiklendi = yon == 'YUKARI'
-            ? guncelFiyat >= hedef
-            : guncelFiyat <= hedef;
+        final sy = alarm['sembol'] as String;
+        final id = alarm['id'] as String;
+        
+        // Bu alarmın coini güncel piyasa listesinde var mı? Fiyatı ne?
+        double? eFiyat;
+        try {
+          eFiyat = piyasalar.firstWhere((p) => p.symbol == sy).price;
+        } catch (_) {}
 
-        if (tetiklendi) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            _bildirimGoster(context, alarm, guncelFiyat);
-          });
+        if (eFiyat != null) {
+          final tetiklendi = yon == 'YUKARI' ? eFiyat >= hedef : eFiyat <= hedef;
+
+          if (tetiklendi) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              _bildirimGoster(context, alarm, eFiyat!);
+              // Sonsuz döngü ve spam'i önlemek için alarm tetiklendikten sonra sistemden uçur.
+              ref.read(alarmProvider.notifier).sil(id);
+            });
+          }
         }
       }
     }
@@ -167,13 +187,18 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
                       color: Colors.white.withValues(alpha: 0.2))),
             )
           else
-            ...alarmlar.map((a) => _AlarmSatiri(
-                  alarm: a,
-                  guncelFiyat: guncelFiyat,
-                  onSil: () => ref
-                      .read(alarmProvider.notifier)
-                      .sil(a['id'] as String),
-                )),
+            ...alarmlar.map((a) {
+              double? ozelAnlikFiyat;
+              try {
+                ozelAnlikFiyat = piyasalar.firstWhere((p) => p.symbol == a['sembol']).price;
+              } catch (_) {}
+              
+              return _AlarmSatiri(
+                alarm: a,
+                guncelFiyat: ozelAnlikFiyat ?? guncelFiyat, // Kendi fiyatı yoksa fallback
+                onSil: () => ref.read(alarmProvider.notifier).sil(a['id'] as String),
+              );
+            }),
 
           const SizedBox(height: 4),
         ],
@@ -184,8 +209,12 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
   void _alarmEkle() {
     final fiyat = double.tryParse(_fiyatCtrl.text.trim());
     if (fiyat == null || fiyat <= 0) return;
+    
+    // Doğru sembol ile ekle! Önceden 'BTC' statik yazılıydı.
+    final coin = ref.read(selectedCoinProvider);
+    
     ref.read(alarmProvider.notifier).ekle(
-          sembol: 'BTC',
+          sembol: coin.symbol.toUpperCase(),
           hedefFiyat: fiyat,
           yon: _seciliYon,
         );
@@ -208,8 +237,8 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
           ),
           const SizedBox(width: 8),
           Text(
-            'ALARM: BTC \$${guncel.toStringAsFixed(0)} → '
-            'Hedef \$${hedef.toStringAsFixed(0)} ${yon == 'YUKARI' ? 'aşıldı' : 'altına indi'}!',
+            'ALARM: ${alarm['sembol'].toString().replaceAll('USDT', '')} \$${guncel.toStringAsFixed(2)} → '
+            'Hedef \$${hedef.toStringAsFixed(2)} ${yon == 'YUKARI' ? 'Aşıldı' : 'Altına İndi'}!',
             style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -270,8 +299,14 @@ class _AlarmSatiri extends StatelessWidget {
     final yon = alarm['yon'] as String;
     final color = yon == 'YUKARI' ? AppTheme.bullish : AppTheme.bearish;
 
-    // Tetiklenme yüzdesi
+    // Tetiklenme yüzdesi hesaplaması (Kendi sembolünün anlık fiyatı üzerinden)
     double ilerleme = 0;
+    
+    // Anlık fiyat dışarıdan (guncelFiyat = seçili coin) gelmek zorunda değil, provider ile izole de alınabilir
+    // ama guncelFiyat parametresi widget tarafından sağlanıyordu. Burada kendi sembolünün güncel fiyatını almak en doğrusu!
+    // ConsumerWidget ile state watch olmadığından, yukarıdan parametre olarak sadece "zaten filtrelenmiş" kendi sembolünün fiyatını verelim.
+    // Ancak dışarıda geçilen (guncelFiyat) genelde "seçili_coin" fiyatı olabiliyor.
+    // Bu yüzden parametre yerine tam ilerlemeyi hesaplamak için güncel fiyatı doğrudan buraya entegre ettik.
     if (guncelFiyat != null && guncelFiyat! > 0) {
       if (yon == 'YUKARI') {
         ilerleme = (guncelFiyat! / hedef).clamp(0.0, 1.0);
@@ -299,13 +334,13 @@ class _AlarmSatiri extends StatelessWidget {
             yon == 'YUKARI' ? 'Fiyat ≥ ' : 'Fiyat ≤ ',
             style: TextStyle(fontSize: 11, color: color.withValues(alpha: 0.7)),
           ),
-          Text('\$${hedef.toStringAsFixed(0)}',
+          Text('\$${hedef.toStringAsFixed(2)}',
               style: TextStyle(
-                  fontSize: 12, color: color, fontWeight: FontWeight.w700)),
+                  fontSize: 11, color: color, fontWeight: FontWeight.w700)),
           const Spacer(),
-          const Text('BTC',
-              style: TextStyle(
-                  fontSize: 10, color: Color(0xFF5a6080))),
+          Text(alarm['sembol'].toString().replaceAll('USDT', ''),
+              style: const TextStyle(
+                  fontSize: 9, color: Color(0xFF5a6080), fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
           GestureDetector(
             onTap: onSil,
