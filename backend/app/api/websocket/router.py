@@ -8,8 +8,8 @@ from app.services.binance import stream_kline, stream_markets
 router = APIRouter()
 logger = logging.getLogger(__name__)
 
-@router.websocket("/kline/{symbol}/{interval}")
-async def websocket_kline(websocket: WebSocket, symbol: str, interval: str):
+@router.websocket("/ws/kline/{symbol}/{interval}")
+async def kline_websocket_endpoint(websocket: WebSocket, symbol: str, interval: str):
     room = f"kline_{symbol}_{interval}"
     await ws_manager.connect(websocket, room)
     
@@ -38,8 +38,8 @@ async def websocket_kline(websocket: WebSocket, symbol: str, interval: str):
         # If no one is listening anymore, task will eventually stop or we could cancel it explicitly.
         pass
 
-@router.websocket("/markets")
-async def websocket_markets(websocket: WebSocket):
+@router.websocket("/ws/markets")
+async def markets_websocket_endpoint(websocket: WebSocket):
     room = "markets"
     await ws_manager.connect(websocket, room)
     
