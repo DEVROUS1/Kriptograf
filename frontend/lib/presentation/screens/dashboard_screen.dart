@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../widgets/coin_selector.dart';
@@ -26,6 +27,7 @@ import 'markets_screen.dart';
 import 'portfolio_screen.dart';
 import 'settings_screen.dart';
 import '../providers/dashboard_provider.dart';
+import '../providers/selected_coin_provider.dart';
 
 // ── Yardımcı Araçlar ────────────────────────────────────────────────────────
 
@@ -36,53 +38,92 @@ void _navToSettings(BuildContext context) {
   );
 }
 
-// ── Ana Ekran (ConsumerWidget olarak yeniden tasarlandı) ───────────────────
-
-class DashboardScreen extends ConsumerWidget {
+class DashboardScreen extends ConsumerStatefulWidget {
   const DashboardScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Ekran genişliği 900px'den büyükse masaüstü, küçükse mobil mod.
+  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends ConsumerState<DashboardScreen> {
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final genis = MediaQuery.sizeOf(context).width > 900;
 
-    if (genis) {
-      return const Scaffold(
-        backgroundColor: AppTheme.background,
-        body: Column(children: [
-          _TopBar(),
-          ConnectionStatusWidget(),
-          Expanded(child: _GenisDuzen()),
-        ]),
-      );
-    }
+    Widget body = genis
+        ? const Column(children: [
+            _TopBar(),
+            ConnectionStatusWidget(),
+            Expanded(child: _GenisDuzen()),
+          ])
+        : const _MobilIcerik();
 
-    // Mobil Düzen
-    return Scaffold(
+    Widget content = Scaffold(
       backgroundColor: AppTheme.background,
-      appBar: AppBar(
-        backgroundColor: AppTheme.background,
-        title: const _AppBarTitle(),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.settings_rounded, size: 22, color: Colors.white.withValues(alpha: 0.4)),
-            onPressed: () => _navToSettings(context),
-          ),
-          const SizedBox(width: 8),
-        ],
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        bottom: const PreferredSize(
-          preferredSize: Size.fromHeight(1),
-          child: ConnectionStatusWidget(),
-        ),
-      ),
-      body: const _MobilIcerik(),
-      bottomNavigationBar: const _MobilNavBar(),
+      appBar: genis
+          ? null
+          : AppBar(
+              backgroundColor: AppTheme.background,
+              title: const _AppBarTitle(),
+              actions: [
+                IconButton(
+                  icon: Icon(Icons.settings_rounded, size: 22, color: Colors.white.withValues(alpha: 0.4)),
+                  onPressed: () => _navToSettings(context),
+                ),
+                const SizedBox(width: 8),
+              ],
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              bottom: const PreferredSize(
+                preferredSize: Size.fromHeight(1),
+                child: ConnectionStatusWidget(),
+              ),
+            ),
+      body: body,
+      bottomNavigationBar: genis ? null : const _MobilNavBar(),
+    );
+
+    return Focus(
+      focusNode: _focusNode,
+      autofocus: true,
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent) {
+          // Eğer klavye bir metin kutusuna odaklıysa (örn: Arama, Alarm vs) bu kısayolları pas geç!
+          if (FocusManager.instance.primaryFocus?.context?.widget is EditableText) {
+            return KeyEventResult.ignored;
+          }
+
+          final key = event.logicalKey;
+          final notifier = ref.read(selectedCoinProvider.notifier);
+          
+          if (key == LogicalKeyboardKey.digit1) {
+            notifier.setInterval('1m');
+            return KeyEventResult.handled;
+          } else if (key == LogicalKeyboardKey.digit5) {
+            notifier.setInterval('5m');
+            return KeyEventResult.handled;
+          } else if (key == LogicalKeyboardKey.keyH) {
+            notifier.setInterval('1h');
+            return KeyEventResult.handled;
+          } else if (key == LogicalKeyboardKey.keyD) {
+            notifier.setInterval('1d');
+            return KeyEventResult.handled;
+          }
+        }
+        return KeyEventResult.ignored;
+      },
+      child: content,
     );
   }
 }
-
 // ── Geniş ekran düzeni ─────────────────────────────────────────────────────
 
 class _GenisDuzen extends ConsumerWidget {
@@ -245,7 +286,13 @@ class _MasaustuPanelAnalizOrtak extends ConsumerWidget {
       const SizedBox(height: 8),
       const Padding(
         padding: EdgeInsets.symmetric(horizontal: 12),
-        child: CoinSelector(),
+        child: Row(
+          children: [
+            Expanded(child: CoinSelector()),
+            SizedBox(width: 8),
+            _MultiChartToggle(),
+          ],
+        ),
       ),
       const SizedBox(height: 8),
       Expanded(
@@ -262,6 +309,52 @@ class _MasaustuPanelAnalizOrtak extends ConsumerWidget {
         ),
       ],
     ]);
+  }
+}
+
+class _MultiChartToggle extends ConsumerWidget {
+  const _MultiChartToggle();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(multiChartModeProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildBtn(ref, mode, 1, Icons.crop_square_rounded),
+          _buildBtn(ref, mode, 2, Icons.splitscreen_rounded),
+          _buildBtn(ref, mode, 4, Icons.grid_view_rounded),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBtn(WidgetRef ref, int current, int target, IconData icon) {
+    final isSelected = current == target;
+    return GestureDetector(
+      onTap: () => ref.read(multiChartModeProvider.notifier).state = target,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        decoration: BoxDecoration(
+          color: isSelected ? AppTheme.primary.withValues(alpha: 0.2) : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Icon(
+          icon,
+          size: 18,
+          color: isSelected ? AppTheme.primary : Colors.white.withValues(alpha: 0.4),
+        ),
+      ),
+    );
   }
 }
 
@@ -569,6 +662,44 @@ class _ChartCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isSearchOpen = ref.watch(isSearchOpenProvider);
+    final multiChartMode = ref.watch(multiChartModeProvider);
+
+    Widget buildCharts() {
+      if (multiChartMode == 2) {
+        return Row(
+          children: [
+            const Expanded(child: TradingViewChart()),
+            Container(width: 1, color: Colors.white.withValues(alpha: 0.1)),
+            const Expanded(child: TradingViewChart(symbol: 'ETHUSDT', interval: '15m')),
+          ],
+        );
+      } else if (multiChartMode == 4) {
+        return Column(
+          children: [
+            Expanded(
+              child: Row(
+                children: [
+                   const Expanded(child: TradingViewChart()),
+                   Container(width: 1, color: Colors.white.withValues(alpha: 0.1)),
+                   const Expanded(child: TradingViewChart(symbol: 'ETHUSDT', interval: '15m')),
+                ],
+              ),
+            ),
+            Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
+            Expanded(
+              child: Row(
+                children: [
+                   const Expanded(child: TradingViewChart(symbol: 'SOLUSDT', interval: '15m')),
+                   Container(width: 1, color: Colors.white.withValues(alpha: 0.1)),
+                   const Expanded(child: TradingViewChart(symbol: 'BNBUSDT', interval: '15m')),
+                ],
+              ),
+            ),
+          ],
+        );
+      }
+      return const TradingViewChart();
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -580,7 +711,7 @@ class _ChartCard extends ConsumerWidget {
         borderRadius: BorderRadius.circular(12),
         child: Stack(
           children: [
-            const Positioned.fill(child: TradingViewChart()),
+            Positioned.fill(child: buildCharts()),
             
             // Eğer arama (Overlay) açıksa, grafiğin pointer events (hit testing) yutmasını
             // kalıcı olarak engellemek adına görünmez bir Stack katmanı atarız!

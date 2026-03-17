@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:fl_chart/fl_chart.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/portfolio_model.dart';
 import '../providers/global_markets_provider.dart';
@@ -35,7 +36,12 @@ class _State extends ConsumerState<PortfolioScreen> {
       ),
       body: Column(children: [
         portfoyAsync.when(
-          data: (p) => _ToplamKart(portfoy: p),
+          data: (p) => Column(
+            children: [
+              _ToplamKart(portfoy: p),
+              _PortfolioPieChart(portfoy: p),
+            ]
+          ),
           loading: () => const SizedBox(
               height: 80,
               child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
@@ -292,6 +298,99 @@ class _VarlikSatiri extends StatelessWidget {
                   const TextStyle(fontSize: 9, color: Color(0xFF5a6080))),
         ),
       ]),
+    );
+  }
+}
+
+class _PortfolioPieChart extends StatelessWidget {
+  const _PortfolioPieChart({required this.portfoy});
+  final PortfolioModel portfoy;
+
+  @override
+  Widget build(BuildContext context) {
+    if (portfoy.varliklar.isEmpty) return const SizedBox.shrink();
+
+    final List<Color> colors = [
+      AppTheme.primary,
+      AppTheme.bullish,
+      AppTheme.warning,
+      Colors.purpleAccent,
+      Colors.orangeAccent,
+      Colors.pinkAccent,
+      Colors.cyanAccent,
+    ];
+
+    return Container(
+      height: 140,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      decoration: BoxDecoration(
+        color: AppTheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 1,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 2,
+                centerSpaceRadius: 36,
+                startDegreeOffset: -90,
+                sections: portfoy.varliklar.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final asset = entry.value;
+                  final percentage = portfoy.toplamUsd > 0 ? (asset.degerUsd / portfoy.toplamUsd) * 100 : 0.0;
+                  final color = colors[idx % colors.length];
+                  return PieChartSectionData(
+                    color: color.withValues(alpha: 0.8),
+                    value: percentage,
+                    title: '${percentage.toStringAsFixed(0)}%',
+                    radius: 20,
+                    titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            flex: 1,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: portfoy.varliklar.asMap().entries.map((entry) {
+                  final idx = entry.key;
+                  final asset = entry.value;
+                  final color = colors[idx % colors.length];
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 6.0),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 10,
+                          height: 10,
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.8),
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          asset.sembol.length > 5 ? asset.sembol.substring(0, 5) : asset.sembol,
+                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

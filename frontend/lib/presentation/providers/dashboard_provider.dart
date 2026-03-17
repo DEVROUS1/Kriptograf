@@ -31,7 +31,11 @@ extension DashTabExt on DashTab {
 }
 
 // Tüm sekmelerin global state yönetimi
+// Tüm sekmelerin global state yönetimi
 final dashboardTabProvider = StateProvider<DashTab>((ref) => DashTab.panel);
 
 // TradingView Iframe Z-Index pointer sorununu çözmek için (Arama açıldığında grafiği inaktif yapmak)
 final isSearchOpenProvider = StateProvider<bool>((ref) => false);
+
+// Çoklu grafik modu: 1 (Tek), 2 (İkili), 4 (Dörtlü)
+final multiChartModeProvider = StateProvider<int>((ref) => 1);
