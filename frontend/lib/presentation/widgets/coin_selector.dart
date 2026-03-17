@@ -208,7 +208,6 @@ class _CoinSearchDialogState extends State<_CoinSearchDialog> {
             ),
           ],
         ),
-      ),
-    );
+      );
   }
 }
