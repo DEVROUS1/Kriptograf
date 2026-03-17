@@ -43,7 +43,7 @@ class _NewsScreenState extends ConsumerState<NewsScreen>
                 Tab(text: 'Duygu Analizi'),
               ],
               labelColor: AppTheme.primary,
-              unselectedLabelColor: Color(0xFF5a6080),
+              unselectedLabelColor: const Color(0xFF5a6080),
               indicatorColor: AppTheme.primary,
               indicatorSize: TabBarIndicatorSize.label,
             ),
@@ -99,15 +99,15 @@ class _HaberListesi extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.newspaper_rounded,
+            const Icon(Icons.newspaper_rounded,
                 color: AppTheme.bearish, size: 32),
             const SizedBox(height: 12),
-            Text('Haberler alınamadı',
+            const Text('Haberler alınamadı',
                 style: TextStyle(color: AppTheme.bearish, fontSize: 13)),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => ref.refresh(newsSentimentProvider.future),
-              child: Text('Yeniden dene',
+              child: const Text('Yeniden dene',
                   style: TextStyle(color: AppTheme.primary)),
             ),
           ],
@@ -173,7 +173,7 @@ class _HaberKarti extends StatelessWidget {
                   borderRadius: BorderRadius.circular(4),
                 ),
                 child: Text(kaynak,
-                    style: TextStyle(
+                    style: const TextStyle(
                         fontSize: 10,
                         color: AppTheme.primary,
                         fontWeight: FontWeight.w700)),

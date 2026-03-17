@@ -5,12 +5,44 @@ import math
 async def hesapla_indikatorler(symbol: str = "BTCUSDT", interval: str = "1h") -> dict:
     usdt = symbol.upper() if "USDT" in symbol.upper() else symbol.upper() + "USDT"
 
-    async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.get(
-            f"https://api.binance.com/api/v3/klines"
-            f"?symbol={usdt}&interval={interval}&limit=200"
-        )
-        klines = r.json()
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(
+                f"https://api.binance.com/api/v3/klines"
+                f"?symbol={usdt}&interval={interval}&limit=200"
+            )
+            r.raise_for_status()
+            klines = r.json()
+            if not isinstance(klines, list) or len(klines) < 50:
+                raise ValueError("Veri yetersiz")
+    except Exception:
+        return {
+            "sembol": symbol.upper(),
+            "guncel": 0.0,
+            "rsi": 50.0,
+            "rsi_yorum": "Hata",
+            "macd": {"deger": 0.0, "sinyal": 0.0, "histogram": 0.0},
+            "bollinger": {
+                "ust": 0.0, "orta": 0.0, "alt": 0.0,
+                "genislik": 0.0,
+                "pozisyon": "ORTA",
+            },
+            "stoch_rsi": {"k": 50.0, "d": 50.0, "yorum": "Hata"},
+            "ema": {
+                "ema20": 0.0, "ema50": 0.0, "ema100": 0.0, "ema200": 0.0,
+                "trend": "BELIRSIZ",
+            },
+            "atr": {"deger": 0.0, "yuzde": 0.0},
+            "cci": 0.0,
+            "williams_r": 0.0,
+            "obv_trend": "BELIRSIZ",
+            "ichimoku": {
+                "tenkan": 0.0, "kijun": 0.0, "senkou_a": 0.0, "senkou_b": 0.0,
+                "bulut_rengi": "YOK", "fiyat_bulut_ustu": False
+            },
+            "genel_skor": 50,
+            "genel_sinyal": "VERİ ALINAMADI",
+        }
 
     closes = [float(k[4]) for k in klines]
     highs = [float(k[2]) for k in klines]

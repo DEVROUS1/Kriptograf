@@ -35,7 +35,7 @@ class CvdWidget extends ConsumerWidget {
             child: Row(
               children: [
                 Container(width: 8, height: 8,
-                    decoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle)),
+                    decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle)),
                 const SizedBox(width: 7),
                 const Text('CVD — KÜMÜLATİF HACİM DELTA',
                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
@@ -68,7 +68,7 @@ class CvdWidget extends ConsumerWidget {
             child: dataAsync.when(
               data: (d) => _CvdChart(data: d),
               loading: () => const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-              error: (e, _) => Center(
+              error: (e, _) => const Center(
                 child: Text('CVD verisi alınamadı',
                     style: TextStyle(color: AppTheme.bearish, fontSize: 11)),
               ),

@@ -93,16 +93,16 @@ class MarketsScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.wifi_off_rounded,
+                    const Icon(Icons.wifi_off_rounded,
                         color: AppTheme.bearish, size: 32),
                     const SizedBox(height: 12),
-                    Text('Piyasa verisi alınamadı',
+                    const Text('Piyasa verisi alınamadı',
                         style: TextStyle(
                             color: AppTheme.bearish, fontSize: 13)),
                     const SizedBox(height: 12),
                     TextButton(
                       onPressed: () => ref.refresh(marketsListProvider.future),
-                      child: Text('Yeniden dene',
+                      child: const Text('Yeniden dene',
                           style: TextStyle(color: AppTheme.primary)),
                     ),
                   ],
@@ -226,7 +226,7 @@ class _TabloBaslik extends StatelessWidget {
           bottom: BorderSide(color: Colors.white.withValues(alpha: 0.06)),
         ),
       ),
-      child: Row(children: const [
+      child: const Row(children: [
         Expanded(
           flex: 3,
           child: Text('Sembol',
@@ -321,7 +321,7 @@ class _PiyasaSatiri extends ConsumerWidget {
                 alignment: Alignment.center,
                 child: Text(
                   base.length > 3 ? base.substring(0, 3) : base,
-                  style: TextStyle(
+                  style: const TextStyle(
                     color: AppTheme.primary,
                     fontSize: 9,
                     fontWeight: FontWeight.w800,

@@ -94,11 +94,11 @@ class _Body extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text('Olumlu %$poz',
-                  style: TextStyle(fontSize: 10, color: AppTheme.bullish, fontWeight: FontWeight.w600)),
+                  style: const TextStyle(fontSize: 10, color: AppTheme.bullish, fontWeight: FontWeight.w600)),
               Text('${ist['toplam']} haber',
                   style: const TextStyle(fontSize: 9, color: Color(0xFF5a6080))),
               Text('Olumsuz %${100 - poz}',
-                  style: TextStyle(fontSize: 10, color: AppTheme.bearish, fontWeight: FontWeight.w600)),
+                  style: const TextStyle(fontSize: 10, color: AppTheme.bearish, fontWeight: FontWeight.w600)),
             ],
           ),
         ),

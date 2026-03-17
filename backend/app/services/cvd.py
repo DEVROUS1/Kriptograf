@@ -7,11 +7,22 @@ async def get_cvd_data(symbol: str = "BTCUSDT", interval: str = "1m", limit: int
     CVD = Σ(alış hacmi - satış hacmi)
     Binance kline'da taker_buy_base_volume alanı alış hacmini verir.
     """
-    url = (f"https://api.binance.com/api/v3/klines"
-           f"?symbol={symbol.upper()}&interval={interval}&limit={limit}")
-    async with httpx.AsyncClient() as client:
-        r = await client.get(url)
-        klines = r.json()
+    try:
+        url = (f"https://api.binance.com/api/v3/klines"
+               f"?symbol={symbol.upper()}&interval={interval}&limit={limit}")
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(url)
+            r.raise_for_status()
+            klines = r.json()
+            if not isinstance(klines, list):
+                raise ValueError("Invalid format")
+    except Exception:
+        return {
+            "veri": [],
+            "son_cvd": 0.0,
+            "trend": "BELİRSİZ",
+            "alis_baskisi": False,
+        }
 
     cvd_data = []
     cumulative = 0.0

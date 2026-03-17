@@ -27,8 +27,8 @@ class GlobalMarketsWidget extends ConsumerWidget {
               padding: EdgeInsets.symmetric(vertical: 24),
               child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
             ),
-            error: (e, _) => Padding(
-              padding: const EdgeInsets.all(16),
+            error: (e, _) => const Padding(
+              padding: EdgeInsets.all(16),
               child: Text('Piyasa verisi alınamadı',
                   style: TextStyle(color: AppTheme.bearish, fontSize: 11)),
             ),
@@ -47,7 +47,7 @@ class _Baslik extends StatelessWidget {
       child: Row(children: [
         Container(
           width: 8, height: 8,
-          decoration: BoxDecoration(color: const Color(0xFF0099ff), shape: BoxShape.circle),
+          decoration: const BoxDecoration(color: Color(0xFF0099ff), shape: BoxShape.circle),
         ),
         const SizedBox(width: 7),
         const Text('KÜRESEL & TÜRKİYE PİYASALARI',
@@ -151,7 +151,7 @@ class _TlKart extends StatelessWidget {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('$sembol/TRY',
-              style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w700)),
+              style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w700)),
           const SizedBox(height: 3),
           Text(
             '₺${_fmt(fiyatTl)}',

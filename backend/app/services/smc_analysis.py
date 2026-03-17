@@ -44,14 +44,32 @@ class LiquidityLevel:
 async def smc_analiz(symbol: str = "BTCUSDT", interval: str = "4h") -> dict:
     usdt = symbol.upper() if "USDT" in symbol.upper() else symbol.upper() + "USDT"
 
-    async with httpx.AsyncClient(timeout=12) as c:
-        r = await c.get(
-            f"https://api.binance.com/api/v3/klines"
-            f"?symbol={usdt}&interval={interval}&limit=100"
-        )
-        klines = r.json()
-        p = await c.get(f"https://api.binance.com/api/v3/ticker/price?symbol={usdt}")
-        guncel = float(p.json()["price"])
+    try:
+        async with httpx.AsyncClient(timeout=12) as c:
+            r = await c.get(
+                f"https://api.binance.com/api/v3/klines"
+                f"?symbol={usdt}&interval={interval}&limit=100"
+            )
+            r.raise_for_status()
+            klines = r.json()
+            if not isinstance(klines, list) or len(klines) < 30:
+                raise ValueError("Insufficient klines data")
+
+            p = await c.get(f"https://api.binance.com/api/v3/ticker/price?symbol={usdt}")
+            p.raise_for_status()
+            guncel = float(p.json()["price"])
+    except Exception:
+        return {
+            "sembol": symbol.upper(),
+            "interval": interval,
+            "guncel_fiyat": 0.0,
+            "piyasa_yapisi": "BELIRSIZ",
+            "bos_choch": {"bos": None, "choch": None, "trend": "YATAY"},
+            "order_blocks": {"bullish": [], "bearish": [], "en_yakin": None, "en_yakin_mesafe_yuzde": 0.0},
+            "fair_value_gaps": {"bullish": [], "bearish": [], "toplam_aktif": 0},
+            "likidite_seviyeleri": [],
+            "ozet": "SMC verisi Binance üzerinden alınamadı",
+        }
 
     opens = [float(k[1]) for k in klines]
     highs = [float(k[2]) for k in klines]

@@ -35,7 +35,7 @@ class FearGreedWidget extends ConsumerWidget {
         children: [
           Row(children: [
             Container(width: 8, height: 8,
-                decoration: BoxDecoration(color: AppTheme.warning, shape: BoxShape.circle)),
+                decoration: const BoxDecoration(color: AppTheme.warning, shape: BoxShape.circle)),
             const SizedBox(width: 7),
             const Text('KORKU / AÇGÖZLÜLÜK',
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,

@@ -67,12 +67,12 @@ class ScenarioWidget extends ConsumerWidget {
               Text('AI analiz yapıyor...', style: TextStyle(color: Color(0xFF5a6080), fontSize: 11)),
             ]),
           ),
-          error: (e, _) => Padding(
-            padding: const EdgeInsets.all(14),
+          error: (e, _) => const Padding(
+            padding: EdgeInsets.all(14),
             child: Row(children: [
               Icon(Icons.warning_amber_rounded, size: 14, color: AppTheme.warning),
-              const SizedBox(width: 8),
-              const Expanded(
+              SizedBox(width: 8),
+              Expanded(
                 child: Text('GROQ_API_KEY Render.com\'a ekleyin.',
                     style: TextStyle(color: Color(0xFF8890b0), fontSize: 11)),
               ),
@@ -132,10 +132,10 @@ class _Body extends StatelessWidget {
         if (kritikSeviye != null) ...[
           const SizedBox(height: 8),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-            Icon(Icons.my_location_rounded, size: 12, color: AppTheme.warning),
+            const Icon(Icons.my_location_rounded, size: 12, color: AppTheme.warning),
             const SizedBox(width: 5),
             Text('Kritik Seviye: \$${_fmt(_pd(kritikSeviye))}',
-                style: TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.w700)),
           ]),
         ],
         const SizedBox(height: 12),

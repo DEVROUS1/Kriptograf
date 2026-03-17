@@ -59,7 +59,7 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
             child: Row(children: [
               Container(
                 width: 8, height: 8,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppTheme.warning, shape: BoxShape.circle,
                 ),
               ),
@@ -147,7 +147,7 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
                     border: Border.all(
                         color: AppTheme.primary.withValues(alpha: 0.4)),
                   ),
-                  child: Text('Kur',
+                  child: const Text('Kur',
                       style: TextStyle(
                           fontSize: 12,
                           color: AppTheme.primary,
@@ -303,8 +303,8 @@ class _AlarmSatiri extends StatelessWidget {
               style: TextStyle(
                   fontSize: 12, color: color, fontWeight: FontWeight.w700)),
           const Spacer(),
-          Text('BTC',
-              style: const TextStyle(
+          const Text('BTC',
+              style: TextStyle(
                   fontSize: 10, color: Color(0xFF5a6080))),
           const SizedBox(width: 8),
           GestureDetector(

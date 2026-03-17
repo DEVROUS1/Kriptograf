@@ -33,11 +33,11 @@ class AiSummaryWidget extends ConsumerWidget {
                 ),
               ),
               loading: () => const _Iskelet(),
-              error: (_, __) => Row(
+              error: (_, __) => const Row(
                 children: [
                   Icon(Icons.warning_amber_rounded, size: 14, color: AppTheme.warning),
-                  const SizedBox(width: 8),
-                  const Expanded(
+                  SizedBox(width: 8),
+                  Expanded(
                     child: Text(
                       'AI özeti için Render.com\'a GROQ_API_KEY ekleyin.',
                       style: TextStyle(color: Color(0xFF8890b0), fontSize: 11),
@@ -102,13 +102,13 @@ class _Iskelet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _Line(width: double.infinity),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         _Line(width: double.infinity),
-        const SizedBox(height: 6),
+        SizedBox(height: 6),
         _Line(width: 220),
       ],
     );

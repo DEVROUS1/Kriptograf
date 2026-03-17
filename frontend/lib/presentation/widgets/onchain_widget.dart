@@ -51,8 +51,8 @@ class OnchainWidget extends ConsumerWidget {
             padding: EdgeInsets.symmetric(vertical: 20),
             child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
           ),
-          error: (e, _) => Padding(
-            padding: const EdgeInsets.all(12),
+          error: (e, _) => const Padding(
+            padding: EdgeInsets.all(12),
             child: Text('On-chain verisi alınamadı',
                 style: TextStyle(color: AppTheme.bearish, fontSize: 11)),
           ),
@@ -186,7 +186,7 @@ class _Body extends StatelessWidget {
           Text('30g ort: ${(fg['aylik_ortalama'] as num).toStringAsFixed(0)}',
               style: const TextStyle(fontSize: 9, color: Color(0xFF5a6080))),
           Text('Bugün: ${fg['guncel']}',
-              style: TextStyle(fontSize: 9, color: AppTheme.warning, fontWeight: FontWeight.w700)),
+              style: const TextStyle(fontSize: 9, color: AppTheme.warning, fontWeight: FontWeight.w700)),
         ]),
       ]),
     );

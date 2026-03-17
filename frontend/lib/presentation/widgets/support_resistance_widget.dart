@@ -42,8 +42,8 @@ class SupportResistanceWidget extends ConsumerWidget {
           loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-          error: (e, _) => Padding(
-              padding: const EdgeInsets.all(12),
+          error: (e, _) => const Padding(
+              padding: EdgeInsets.all(12),
               child: Text('Veri alınamadı', style: TextStyle(color: AppTheme.bearish, fontSize: 11))),
         ),
       ]),
@@ -76,7 +76,7 @@ class _Body extends StatelessWidget {
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             const Text('Güncel Fiyat', style: TextStyle(fontSize: 11, color: Color(0xFF8890b0))),
             Text('\$${_fmt(guncel)}',
-                style: TextStyle(fontSize: 13, color: AppTheme.primary, fontWeight: FontWeight.w700)),
+                style: const TextStyle(fontSize: 13, color: AppTheme.primary, fontWeight: FontWeight.w700)),
           ]),
         ),
         const SizedBox(height: 10),

@@ -27,8 +27,8 @@ class WhaleWidget extends ConsumerWidget {
               padding: EdgeInsets.all(20),
               child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
             ),
-            error: (e, _) => Padding(
-              padding: const EdgeInsets.all(16),
+            error: (e, _) => const Padding(
+              padding: EdgeInsets.all(16),
               child: Text('Veri alınamadı', style: TextStyle(color: AppTheme.bearish, fontSize: 12)),
             ),
           ),
@@ -47,7 +47,7 @@ class _Header extends StatelessWidget {
         children: [
           Container(
             width: 8, height: 8,
-            decoration: BoxDecoration(color: const Color(0xFF6C63FF), shape: BoxShape.circle),
+            decoration: const BoxDecoration(color: Color(0xFF6C63FF), shape: BoxShape.circle),
           ),
           const SizedBox(width: 7),
           const Text('BALİNA HAREKETLERİ',
@@ -60,7 +60,7 @@ class _Header extends StatelessWidget {
               color: AppTheme.primary.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(4),
             ),
-            child: Text('\$500K+',
+            child: const Text('\$500K+',
                 style: TextStyle(fontSize: 9, color: AppTheme.primary, fontWeight: FontWeight.w700)),
           ),
         ],
@@ -86,9 +86,9 @@ class _Body extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('ALIŞ ${stats.aliYuzde.toStringAsFixed(0)}%',
-                      style: TextStyle(fontSize: 10, color: AppTheme.bullish, fontWeight: FontWeight.w700)),
+                      style: const TextStyle(fontSize: 10, color: AppTheme.bullish, fontWeight: FontWeight.w700)),
                   Text('SATIŞ ${(100 - stats.aliYuzde).toStringAsFixed(0)}%',
-                      style: TextStyle(fontSize: 10, color: AppTheme.bearish, fontWeight: FontWeight.w700)),
+                      style: const TextStyle(fontSize: 10, color: AppTheme.bearish, fontWeight: FontWeight.w700)),
                 ],
               ),
               const SizedBox(height: 5),
@@ -115,9 +115,9 @@ class _Body extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(_fmtUsd(stats.alisHacimUsd),
-                      style: TextStyle(fontSize: 11, color: AppTheme.bullish, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(fontSize: 11, color: AppTheme.bullish, fontWeight: FontWeight.w600)),
                   Text(_fmtUsd(stats.satisHacimUsd),
-                      style: TextStyle(fontSize: 11, color: AppTheme.bearish, fontWeight: FontWeight.w600)),
+                      style: const TextStyle(fontSize: 11, color: AppTheme.bearish, fontWeight: FontWeight.w600)),
                 ],
               ),
             ],

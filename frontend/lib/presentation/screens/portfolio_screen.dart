@@ -89,7 +89,7 @@ class _State extends ConsumerState<PortfolioScreen> {
             },
             loading: () =>
                 const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            error: (_, __) => Center(
+            error: (_, __) => const Center(
               child: Text('Değerlemede hata',
                   style: TextStyle(color: AppTheme.bearish, fontSize: 12)),
             ),
@@ -127,7 +127,7 @@ class _ToplamKart extends StatelessWidget {
           const Text('Toplam (TL)',
               style: TextStyle(fontSize: 11, color: Color(0xFF8890b0))),
           Text('₺${portfoy.toplamTl.toStringAsFixed(0)}',
-              style: TextStyle(
+              style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: AppTheme.bullish)),
@@ -235,7 +235,7 @@ class _VarlikSatiri extends StatelessWidget {
               asset.sembol.length > 3
                   ? asset.sembol.substring(0, 3)
                   : asset.sembol,
-              style: TextStyle(
+              style: const TextStyle(
                   color: AppTheme.primary,
                   fontSize: 10,
                   fontWeight: FontWeight.w800),
@@ -263,7 +263,7 @@ class _VarlikSatiri extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w700)),
             Text('₺${asset.degerTl.toStringAsFixed(0)}',
-                style: TextStyle(color: AppTheme.bullish, fontSize: 11)),
+                style: const TextStyle(color: AppTheme.bullish, fontSize: 11)),
           ]),
           IconButton(
             onPressed: onSil,

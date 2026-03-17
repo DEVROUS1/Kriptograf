@@ -33,7 +33,7 @@ class AdvancedIndicatorsWidget extends ConsumerWidget {
           padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
           child: Row(children: [
             Container(width: 8, height: 8,
-                decoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle)),
+                decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle)),
             const SizedBox(width: 7),
             const Text('GELİŞMİŞ İNDİKATÖRLER',
                 style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
@@ -63,8 +63,8 @@ class AdvancedIndicatorsWidget extends ConsumerWidget {
           loading: () => const Padding(
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
-          error: (e, _) => Padding(
-              padding: const EdgeInsets.all(12),
+          error: (e, _) => const Padding(
+              padding: EdgeInsets.all(12),
               child: Text('İndikatörler alınamadı',
                   style: TextStyle(color: AppTheme.bearish, fontSize: 11))),
         ),

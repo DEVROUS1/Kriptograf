@@ -127,7 +127,7 @@ class _SmcWidgetState extends ConsumerState<SmcWidget>
             ),
             loading: () =>
                 const Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            error: (e, _) => Center(
+            error: (e, _) => const Center(
               child: Text('SMC verisi alınamadı',
                   style: TextStyle(color: AppTheme.bearish, fontSize: 11)),
             ),
@@ -285,7 +285,7 @@ class _FvgTab extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         Text('$toplam aktif FVG',
-            style: TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w700)),
+            style: const TextStyle(fontSize: 10, color: AppTheme.primary, fontWeight: FontWeight.w700)),
         const SizedBox(height: 8),
 
         const Text('BULLISH FVG (Destek Boşlukları)',

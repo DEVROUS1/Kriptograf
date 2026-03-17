@@ -23,7 +23,7 @@ class CorrelationWidget extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             child: Row(children: [
               Container(width: 8, height: 8,
-                  decoration: BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle)),
+                  decoration: const BoxDecoration(color: AppTheme.primary, shape: BoxShape.circle)),
               const SizedBox(width: 7),
               const Text('BTC MAKRO KORELASYON (30G)',
                   style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,

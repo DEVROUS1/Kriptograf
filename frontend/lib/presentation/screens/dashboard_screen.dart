@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
-import '../providers/kline_provider.dart';
 import '../widgets/coin_selector.dart';
 import '../widgets/live_price_widget.dart';
 import '../widgets/cvd_widget.dart';
@@ -24,7 +23,6 @@ import '../widgets/smc_widget.dart';
 import '../widgets/scenario_widget.dart';
 import '../widgets/onchain_widget.dart';
 import 'markets_screen.dart';
-import 'news_screen.dart';
 import 'portfolio_screen.dart';
 
 // ── Sekme tanımları ────────────────────────────────────────────────────────
@@ -398,9 +396,9 @@ class _MobilIcerik extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return switch (aktif) {
-      DashTab.panel => SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
-          child: const Column(children: [
+      DashTab.panel => const SingleChildScrollView(
+          padding: EdgeInsets.all(12),
+          child: Column(children: [
             LivePriceWidget(),
             SizedBox(height: 10),
             CoinSelector(),
@@ -416,9 +414,9 @@ class _MobilIcerik extends StatelessWidget {
             FearGreedWidget(),
           ]),
         ),
-      DashTab.analiz => SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
-          child: const Column(children: [
+      DashTab.analiz => const SingleChildScrollView(
+          padding: EdgeInsets.all(12),
+          child: Column(children: [
             SmcWidget(),
             SizedBox(height: 12),
             SupportResistanceWidget(),
@@ -428,9 +426,9 @@ class _MobilIcerik extends StatelessWidget {
             SignalWidget(),
           ]),
         ),
-      DashTab.yapayZeka => SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
-          child: const Column(children: [
+      DashTab.yapayZeka => const SingleChildScrollView(
+          padding: EdgeInsets.all(12),
+          child: Column(children: [
             ScenarioWidget(),
             SizedBox(height: 12),
             AiSummaryWidget(),
@@ -438,9 +436,9 @@ class _MobilIcerik extends StatelessWidget {
             NewsSentimentWidget(),
           ]),
         ),
-      DashTab.onchain => SingleChildScrollView(
-          padding: const EdgeInsets.all(12),
-          child: const Column(children: [
+      DashTab.onchain => const SingleChildScrollView(
+          padding: EdgeInsets.all(12),
+          child: Column(children: [
             OnchainWidget(),
             SizedBox(height: 12),
             WhaleWidget(),
@@ -489,7 +487,7 @@ class _MobilNavBar extends StatelessWidget {
                     duration: const Duration(milliseconds: 150),
                     decoration: BoxDecoration(
                       border: secili
-                          ? Border(
+                          ? const Border(
                               top: BorderSide(
                                   color: AppTheme.primary, width: 2))
                           : null,
@@ -533,9 +531,9 @@ class _TopBar extends StatelessWidget {
         const _AppBarTitle(),
         const Spacer(),
         Container(width: 7, height: 7,
-            decoration: BoxDecoration(color: AppTheme.bullish, shape: BoxShape.circle)),
+            decoration: const BoxDecoration(color: AppTheme.bullish, shape: BoxShape.circle)),
         const SizedBox(width: 6),
-        Text('CANLI', style: TextStyle(
+        const Text('CANLI', style: TextStyle(
             fontSize: 10, color: AppTheme.bullish, fontWeight: FontWeight.w700)),
       ]),
     );
@@ -564,7 +562,7 @@ class _AppBarTitle extends StatelessWidget {
             color: AppTheme.primary.withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(4),
             border: Border.all(color: AppTheme.primary.withValues(alpha: 0.4))),
-        child: Text('PRO',
+        child: const Text('PRO',
             style: TextStyle(
                 fontSize: 8, color: AppTheme.primary, fontWeight: FontWeight.w800)),
       ),

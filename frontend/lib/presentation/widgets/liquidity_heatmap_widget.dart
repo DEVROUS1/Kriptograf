@@ -34,7 +34,7 @@ class LiquidityHeatmapWidget extends ConsumerWidget {
             child: Row(
               children: [
                 Container(width: 8, height: 8,
-                    decoration: BoxDecoration(color: AppTheme.warning, shape: BoxShape.circle)),
+                    decoration: const BoxDecoration(color: AppTheme.warning, shape: BoxShape.circle)),
                 const SizedBox(width: 7),
                 const Text('LİKİDİTE ISISI — ORDER BOOK',
                     style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
@@ -140,7 +140,7 @@ class _WallColumn extends StatelessWidget {
                             children: [
                               Text('\$${(w['fiyat'] as num).toStringAsFixed(0)}',
                                   style: const TextStyle(fontSize: 9, color: Colors.white70)),
-                              Text('${(w['miktar'] as num).toStringAsFixed(1)}',
+                              Text((w['miktar'] as num).toStringAsFixed(1),
                                   style: TextStyle(fontSize: 9, color: color, fontWeight: FontWeight.w600)),
                             ],
                           ),

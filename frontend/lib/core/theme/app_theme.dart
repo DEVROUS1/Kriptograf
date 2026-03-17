@@ -15,7 +15,7 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      colorScheme: ColorScheme.dark(
+      colorScheme: const ColorScheme.dark(
         primary: _primary,
         surface: _surface,
         surfaceContainerHighest: _surfaceVariant,
