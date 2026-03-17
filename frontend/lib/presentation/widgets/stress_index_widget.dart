@@ -26,22 +26,41 @@ final stressIndexProvider = FutureProvider.autoDispose<Map<String, dynamic>>((re
 
   // Stres skoru hesapla
   int puan = 0;
-  final siddet = anomaly['siddet'] as String;
-  if (siddet == 'KRİTİK') puan += 60;
-  else if (siddet == 'DİKKAT') puan += 30;
+  final siddet = anomaly['siddet']?.toString() ?? 'NORMAL';
+  if (siddet == 'KRİTİK') {
+    puan += 60;
+  } else if (siddet == 'DİKKAT') {
+    puan += 30;
+  }
 
-  final signalGuc = (signal['guc'] as num).toInt();
-  if (signalGuc <= 25) puan += 30;
-  else if (signalGuc >= 75) puan += 10;
+  int signalGuc = 50;
+  if (signal['guc'] is num) {
+    signalGuc = (signal['guc'] as num).toInt();
+  } else if (signal['guc'] is String) {
+    signalGuc = int.tryParse(signal['guc'].toString()) ?? 50;
+  }
+  
+  if (signalGuc <= 25) {
+    puan += 30;
+  } else if (signalGuc >= 75) {
+    puan += 10;
+  }
 
-  final anomaliSayisi = (anomaly['anomaliler'] as List).length;
+  int anomaliSayisi = 0;
+  if (anomaly['anomaliler'] is List) {
+    anomaliSayisi = (anomaly['anomaliler'] as List).length;
+  }
   puan += (anomaliSayisi * 10).clamp(0, 30);
   puan = puan.clamp(0, 100);
 
   String etiket;
-  if (puan < 30) etiket = 'STABİL';
-  else if (puan < 60) etiket = 'DİKKATLİ';
-  else etiket = 'KRİTİK';
+  if (puan < 30) {
+    etiket = 'STABİL';
+  } else if (puan < 60) {
+    etiket = 'DİKKATLİ';
+  } else {
+    etiket = 'KRİTİK';
+  }
 
   return {'puan': puan, 'etiket': etiket, 'siddet': siddet};
 });

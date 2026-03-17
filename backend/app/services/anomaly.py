@@ -7,12 +7,23 @@ async def detect_anomalies(symbol: str = "BTCUSDT") -> dict:
     anomaliler = []
     severity = "NORMAL"
 
-    async with httpx.AsyncClient(timeout=10) as c:
-        r = await c.get(
-            f"https://api.binance.com/api/v3/klines"
-            f"?symbol={usdt}&interval=15m&limit=50"
-        )
-    klines = r.json()
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(
+                f"https://api.binance.com/api/v3/klines"
+                f"?symbol={usdt}&interval=15m&limit=50"
+            )
+            r.raise_for_status()
+        klines = r.json()
+        if not isinstance(klines, list) or len(klines) < 20:
+            raise ValueError("Insufficient data")
+    except Exception:
+        return {
+            "anomaliler": [{"tip": "BİLGİ", "mesaj": "Anomali verisi çekilemedi", "siddet": "NORMAL"}],
+            "siddet": "NORMAL",
+            "anomali_var": False,
+            "sembol": symbol.upper(),
+        }
 
     closes = [float(k[4]) for k in klines]
     volumes = [float(k[5]) for k in klines]
