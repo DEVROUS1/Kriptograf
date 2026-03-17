@@ -24,34 +24,15 @@ import '../widgets/scenario_widget.dart';
 import '../widgets/onchain_widget.dart';
 import 'markets_screen.dart';
 import 'portfolio_screen.dart';
+import 'settings_screen.dart';
 import '../providers/dashboard_provider.dart';
 
 // ── Yardımcı Araçlar ────────────────────────────────────────────────────────
 
-void _showSettingsInfo(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) => AlertDialog(
-      backgroundColor: AppTheme.surface,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16), side: BorderSide(color: Colors.white.withValues(alpha: 0.1))),
-      title: const Row(
-        children: [
-          Icon(Icons.construction_rounded, color: AppTheme.primary),
-          SizedBox(width: 10),
-          Text('Yapım Aşamasında', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-        ],
-      ),
-      content: const Text(
-        'Ayarlar modülü şu anda Kriptograf sistem mühendisleri tarafından geliştiriliyor. Yakında aktif edilecek.',
-        style: TextStyle(color: Colors.white70),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Anladım', style: TextStyle(color: AppTheme.primary, fontWeight: FontWeight.bold)),
-        ),
-      ],
-    ),
+void _navToSettings(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const SettingsScreen()),
   );
 }
 
@@ -85,7 +66,7 @@ class DashboardScreen extends ConsumerWidget {
         actions: [
           IconButton(
             icon: Icon(Icons.settings_rounded, size: 22, color: Colors.white.withValues(alpha: 0.4)),
-            onPressed: () => _showSettingsInfo(context),
+            onPressed: () => _navToSettings(context),
           ),
           const SizedBox(width: 8),
         ],
@@ -159,7 +140,7 @@ class _Sidebar extends ConsumerWidget {
           padding: const EdgeInsets.only(bottom: 6),
           child: IconButton(
             icon: Icon(Icons.settings_rounded, size: 20, color: Colors.white.withValues(alpha: 0.3)),
-            onPressed: () => _showSettingsInfo(context),
+            onPressed: () => _navToSettings(context),
             tooltip: 'Ayarlar',
             hoverColor: Colors.white.withValues(alpha: 0.05),
           ),
