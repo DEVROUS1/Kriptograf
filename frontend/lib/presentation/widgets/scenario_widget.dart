@@ -88,36 +88,53 @@ class _Body extends StatelessWidget {
   const _Body({required this.data});
   final Map<String, dynamic> data;
 
+  double _pd(dynamic v) {
+    if (v == null) return 0.0;
+    if (v is num) return v.toDouble();
+    if (v is String) return double.tryParse(v.replaceAll(RegExp(r'[^0-9.]'), '')) ?? 0.0;
+    return 0.0;
+  }
+  
+  int _pi(dynamic v) {
+    if (v == null) return 0;
+    if (v is num) return v.toInt();
+    if (v is String) return int.tryParse(v.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0;
+    return 0;
+  }
+
+  String _ps(dynamic v) => v?.toString() ?? '';
+
   @override
   Widget build(BuildContext context) {
-    final s = data['senaryolar'] as Map<String, dynamic>;
-    final boga = s['boga'] as Map<String, dynamic>;
-    final ayi = s['ayi'] as Map<String, dynamic>;
-    final yatay = s['yatay'] as Map<String, dynamic>;
-    final genelYorum = s['genel_yorum'] as String? ?? '';
+    final s = data['senaryolar'] is Map ? data['senaryolar'] as Map<String, dynamic> : {};
+    final boga = s['boga'] is Map ? s['boga'] as Map<String, dynamic> : {};
+    final ayi = s['ayi'] is Map ? s['ayi'] as Map<String, dynamic> : {};
+    final yatay = s['yatay'] is Map ? s['yatay'] as Map<String, dynamic> : {};
+    final genelYorum = _ps(s['genel_yorum']);
     final kritikSeviye = s['kritik_seviye'];
 
     return Padding(
       padding: const EdgeInsets.all(12),
       child: Column(children: [
         // Genel yorum
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.03),
-            borderRadius: BorderRadius.circular(8),
+        if (genelYorum.isNotEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.03),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(genelYorum,
+                style: const TextStyle(
+                    color: Color(0xFFd0d4ee), fontSize: 12, fontStyle: FontStyle.italic, height: 1.5)),
           ),
-          child: Text(genelYorum,
-              style: const TextStyle(
-                  color: Color(0xFFd0d4ee), fontSize: 12, fontStyle: FontStyle.italic, height: 1.5)),
-        ),
         if (kritikSeviye != null) ...[
           const SizedBox(height: 8),
           Row(mainAxisAlignment: MainAxisAlignment.center, children: [
             Icon(Icons.my_location_rounded, size: 12, color: AppTheme.warning),
             const SizedBox(width: 5),
-            Text('Kritik Seviye: \$${_fmt((kritikSeviye as num).toDouble())}',
+            Text('Kritik Seviye: \$${_fmt(_pd(kritikSeviye))}',
                 style: TextStyle(fontSize: 11, color: AppTheme.warning, fontWeight: FontWeight.w700)),
           ]),
         ],
@@ -125,31 +142,31 @@ class _Body extends StatelessWidget {
 
         // 3 Senaryo
         _SenaryoKart(
-          baslik: boga['baslik'] as String,
-          ihtimal: (boga['ihtimal'] as num).toInt(),
-          hedef: '\$${_fmt((boga['hedef'] as num).toDouble())}',
-          tetikleyici: boga['tetikleyici'] as String,
-          aciklama: boga['aciklama'] as String,
+          baslik: _ps(boga['baslik']),
+          ihtimal: _pi(boga['ihtimal']),
+          hedef: '\$${_fmt(_pd(boga['hedef']))}',
+          tetikleyici: _ps(boga['tetikleyici']),
+          aciklama: _ps(boga['aciklama']),
           color: AppTheme.bullish,
           ikon: Icons.trending_up_rounded,
         ),
         const SizedBox(height: 8),
         _SenaryoKart(
-          baslik: ayi['baslik'] as String,
-          ihtimal: (ayi['ihtimal'] as num).toInt(),
-          hedef: '\$${_fmt((ayi['hedef'] as num).toDouble())}',
-          tetikleyici: ayi['tetikleyici'] as String,
-          aciklama: ayi['aciklama'] as String,
+          baslik: _ps(ayi['baslik']),
+          ihtimal: _pi(ayi['ihtimal']),
+          hedef: '\$${_fmt(_pd(ayi['hedef']))}',
+          tetikleyici: _ps(ayi['tetikleyici']),
+          aciklama: _ps(ayi['aciklama']),
           color: AppTheme.bearish,
           ikon: Icons.trending_down_rounded,
         ),
         const SizedBox(height: 8),
         _SenaryoKart(
-          baslik: yatay['baslik'] as String,
-          ihtimal: (yatay['ihtimal'] as num).toInt(),
-          hedef: '\$${_fmt((yatay['aralik_alt'] as num).toDouble())}–\$${_fmt((yatay['aralik_ust'] as num).toDouble())}',
-          tetikleyici: '',
-          aciklama: yatay['aciklama'] as String,
+          baslik: _ps(yatay['baslik']),
+          ihtimal: _pi(yatay['ihtimal']),
+          hedef: '\$${_fmt(_pd(yatay['aralik_alt']))} – \$${_fmt(_pd(yatay['aralik_ust']))}',
+          tetikleyici: _ps(yatay['tetikleyici']),
+          aciklama: _ps(yatay['aciklama']),
           color: AppTheme.warning,
           ikon: Icons.trending_flat_rounded,
         ),
@@ -214,10 +231,17 @@ class _SenaryoKart extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Row(children: [
-          const Text('Hedef:', style: TextStyle(fontSize: 10, color: Color(0xFF6b6f8e))),
-          const SizedBox(width: 4),
-          Text(hedef, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w700)),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Padding(
+              padding: EdgeInsets.only(top: 1.5),
+              child: Text('Hedef:', style: TextStyle(fontSize: 10, color: Color(0xFF6b6f8e))),
+            ),
+            const SizedBox(width: 4),
+            Expanded(
+              child: Text(hedef, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w700)),
+            ),
         ]),
         if (tetikleyici.isNotEmpty) ...[
           const SizedBox(height: 4),
