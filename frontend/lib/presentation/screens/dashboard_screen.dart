@@ -23,6 +23,8 @@ import '../widgets/advanced_indicators_widget.dart';
 import '../widgets/smc_widget.dart';
 import '../widgets/scenario_widget.dart';
 import '../widgets/onchain_widget.dart';
+import '../widgets/order_book_widget.dart';
+import '../widgets/macro_calendar_widget.dart';
 import 'markets_screen.dart';
 import 'portfolio_screen.dart';
 import 'settings_screen.dart';
@@ -383,9 +385,13 @@ class _SagPanel extends ConsumerWidget {
               SizedBox(height: 10),
               AiSummaryWidget(),
               SizedBox(height: 10),
+              OrderBookWidget(),
+              SizedBox(height: 10),
               SignalWidget(),
               SizedBox(height: 10),
               AlarmWidget(),
+              SizedBox(height: 10),
+              MacroCalendarWidget(),
               SizedBox(height: 10),
               StressIndexWidget(),
               SizedBox(height: 10),
@@ -485,7 +491,11 @@ class _MobilIcerik extends ConsumerWidget {
             SizedBox(height: 10),
             CvdWidget(),
             SizedBox(height: 10),
+            OrderBookWidget(),
+            SizedBox(height: 10),
             AlarmWidget(),
+            SizedBox(height: 10),
+            MacroCalendarWidget(),
             SizedBox(height: 10),
             StressIndexWidget(),
             SizedBox(height: 10),
