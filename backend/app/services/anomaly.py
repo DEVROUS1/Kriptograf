@@ -10,7 +10,7 @@ async def detect_anomalies(symbol: str = "BTCUSDT") -> dict:
     try:
         async with httpx.AsyncClient(timeout=10) as c:
             r = await c.get(
-                f"https://api.binance.com/api/v3/klines"
+                f"https://fapi.binance.com/fapi/v1/klines"
                 f"?symbol={usdt}&interval=15m&limit=50"
             )
             r.raise_for_status()

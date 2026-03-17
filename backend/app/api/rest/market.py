@@ -9,20 +9,11 @@ from app.services.cache import get_cached, set_cached
 
 router = APIRouter()
 
-BINANCE_API = "https://api.binance.com/api/v3"
+BINANCE_API = "https://fapi.binance.com/fapi/v1"
 BINANCE_FAPI = "https://fapi.binance.com/fapi/v1"
 
 IZLENEN_SEMBOLLER = [
-    "BTCUSDT", "ETHUSDT", "BNBUSDT", "SOLUSDT", "XRPUSDT",
-    "ADAUSDT", "DOGEUSDT", "AVAXUSDT", "MATICUSDT", "DOTUSDT",
-    "LINKUSDT", "UNIUSDT", "ATOMUSDT", "LTCUSDT", "BCHUSDT",
-    "NEARUSDT", "FTMUSDT", "ALGOUSDT", "VETUSDT", "MANAUSDT",
-    "SANDUSDT", "AXSUSDT", "THETAUSDT", "EGLDUSDT", "ICPUSDT",
-    "FILUSDT", "AAVEUSDT", "MKRUSDT", "COMPUSDT", "YFIUSDT",
-    "SUSHIUSDT", "CRVUSDT", "SNXUSDT", "RUNEUSDT", "INJUSDT",
-    "APTUSDT", "ARBUSDT", "OPUSDT", "LDOUSDT", "STXUSDT",
-    "BLURUSDT", "CFXUSDT", "HOOKUSDT", "MAGICUSDT", "HIGHUSDT",
-    "FLMUSDT", "TRUUSDT", "LQTYUSDT", "RDNTUSDT", "AMBUSDT",
+    'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'ZECUSDT', 'DOGEUSDT', '1000PEPEUSDT', 'BNXUSDT', 'BNBUSDT', 'TAOUSDT', 'ANIMEUSDT', 'POLYXUSDT', 'ASTERUSDT', 'DEGOUSDT', 'ADAUSDT', 'SUIUSDT', 'TRUMPUSDT', 'AVAXUSDT', 'NEARUSDT', 'LINKUSDT', 'DOTUSDT', 'CFGUSDT', 'VANRYUSDT', 'FETUSDT', 'FILUSDT', 'PAXGUSDT', 'VIDTUSDT', 'SXPUSDT', 'AGIXUSDT', 'LTCUSDT', 'WLDUSDT', 'LINAUSDT', 'MEMEFIUSDT', 'ENAUSDT', 'LEVERUSDT', 'NEIROETHUSDT', 'FTMUSDT', 'BCHUSDT', 'PIXELUSDT', 'CRCLUSDT', 'XPLUSDT', 'TRXUSDT', 'WAVESUSDT', 'AAVEUSDT', 'WIFUSDT', 'UNIUSDT', 'OMNIUSDT', 'YALAUSDT', 'AMBUSDT', 'HYPERUSDT', 'TRIAUSDT', 'BSWUSDT', 'OCEANUSDT', 'BEATUSDT', 'STRAXUSDT', 'DASHUSDT', 'PENGUUSDT', 'RENUSDT', 'UNFIUSDT', 'OPNUSDT', 'VIRTUALUSDT', '1000SHIBUSDT', 'GRASSUSDT', 'RENDERUSDT', 'DGBUSDT', '1000BONKUSDT', 'TROYUSDT', 'HUMAUSDT', 'ARBUSDT', 'IRUSDT', 'XLMUSDT', 'BANUSDT', 'KITEUSDT', 'HBARUSDT', 'CRVUSDT', 'LITUSDT', 'XANUSDT', 'RVNUSDT', 'HIFIUSDT', 'APTUSDT', 'TLMUSDT', 'TSLAUSDT', 'OMUSDT', 'XMRUSDT', 'ICPUSDT', 'TONUSDT', 'ZENUSDT', 'SHIBUSDT', 'LDOUSDT', 'OPUSDT', 'MKRUSDT', 'AXSUSDT', 'SANDUSDT', 'MANAUSDT', 'FLOWUSDT', 'GALAUSDT', 'RUNEUSDT', 'INJUSDT', 'LQTYUSDT', 'RDNTUSDT'
 ]
 
 
@@ -64,23 +55,48 @@ async def piyasalar():
     if cached:
         return cached
 
-    # Paralel çek
-    ticker_tasks = [_ticker_24h(s) for s in IZLENEN_SEMBOLLER]
-    kline_tasks = [_mini_kline(s) for s in IZLENEN_SEMBOLLER]
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(f"{BINANCE_API}/ticker/24hr")
+            all_tickers = r.json()
+    except Exception:
+        all_tickers = []
 
-    tickers, klines = await asyncio.gather(
-        asyncio.gather(*ticker_tasks),
-        asyncio.gather(*kline_tasks),
-    )
+    ticker_dict = {}
+    if isinstance(all_tickers, list):
+        for d in all_tickers:
+            if d.get("symbol") in IZLENEN_SEMBOLLER:
+                ticker_dict[d["symbol"]] = {
+                    "sembol": d["symbol"],
+                    "fiyat": float(d.get("lastPrice", 0)),
+                    "degisim_yuzde": round(float(d.get("priceChangePercent", 0)), 2),
+                    "degisim_usd": round(float(d.get("priceChange", 0)), 4),
+                    "hacim_usdt": round(float(d.get("quoteVolume", 0))),
+                    "yuksek_24h": float(d.get("highPrice", 0)),
+                    "dusuk_24h": float(d.get("lowPrice", 0)),
+                    "islem_sayisi": int(d.get("count", 0)),
+                }
+
+    sem = asyncio.Semaphore(15)
+
+    async def _safe_mini_kline(s):
+        async with sem:
+            return s, await _mini_kline(s)
+
+    kline_tasks = [_safe_mini_kline(s) for s in IZLENEN_SEMBOLLER]
+    klines_results = await asyncio.gather(*kline_tasks)
+    
+    klines_dict = {k: v for k, v in klines_results}
 
     sonuc = []
-    for ticker, sparkline in zip(tickers, klines):
-        if ticker:
-            ticker["sparkline"] = sparkline
-            sonuc.append(ticker)
+    for s in IZLENEN_SEMBOLLER:
+        if s in ticker_dict:
+            t = ticker_dict[s]
+            t["sparkline"] = klines_dict.get(s, [])
+            sonuc.append(t)
 
     sonuc.sort(key=lambda x: x["hacim_usdt"], reverse=True)
-    await set_cached(key, sonuc, ttl=10)
+    await set_cached(key, sonuc, ttl=30)
     return sonuc
 
 
@@ -158,28 +174,26 @@ async def fonlama_oranlari():
     if cached:
         return cached
 
-    semboller = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT", "XRPUSDT"]
-    sonuclar = []
-
-    async def _fonlama(sym: str):
-        try:
-            async with httpx.AsyncClient(timeout=5) as c:
-                r = await c.get(f"{BINANCE_FAPI}/fundingRate?symbol={sym}&limit=1")
-                d = r.json()[0]
-                return {
-                    "sembol": sym,
-                    "oran": round(float(d["fundingRate"]) * 100, 6),
-                    "sonraki_fonlama": int(d["nextFundingTime"]),
-                }
-        except Exception:
-            return None
-
-    results = await asyncio.gather(*[_fonlama(s) for s in semboller])
-    sonuclar = [r for r in results if r]
-    sonuclar.sort(key=lambda x: abs(x["oran"]), reverse=True)
-
-    await set_cached(key, sonuclar, ttl=60)
-    return sonuclar
+    try:
+        async with httpx.AsyncClient(timeout=10) as c:
+            r = await c.get(f"{BINANCE_FAPI}/premiumIndex")
+            data = r.json()
+            
+            sonuclar = []
+            if isinstance(data, list):
+                for d in data:
+                    if d.get("symbol") in IZLENEN_SEMBOLLER:
+                        sonuclar.append({
+                            "sembol": d["symbol"],
+                            "oran": round(float(d.get("lastFundingRate", 0)) * 100, 6),
+                            "sonraki_fonlama": int(d.get("nextFundingTime", 0)),
+                        })
+            
+            sonuclar.sort(key=lambda x: abs(x["oran"]), reverse=True)
+            await set_cached(key, sonuclar, ttl=60)
+            return sonuclar
+    except Exception:
+        return []
 
 
 @router.get("/api/likidasyonlar")

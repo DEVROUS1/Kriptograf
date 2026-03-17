@@ -16,12 +16,12 @@ async def hesapla_destek_direnc(symbol: str = "BTCUSDT") -> dict:
     async with httpx.AsyncClient(timeout=10) as c:
         # 4 saatlik 200 mum — önemli seviyeleri bulmak için yeterli
         r = await c.get(
-            f"https://api.binance.com/api/v3/klines"
+            f"https://fapi.binance.com/fapi/v1/klines"
             f"?symbol={usdt}&interval=4h&limit=200"
         )
         klines = r.json()
         # Güncel fiyat
-        p = await c.get(f"https://api.binance.com/api/v3/ticker/price?symbol={usdt}")
+        p = await c.get(f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={usdt}")
         guncel = float(p.json()["price"])
 
     highs = [float(k[2]) for k in klines]

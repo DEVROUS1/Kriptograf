@@ -11,7 +11,7 @@ async def get_exchange_spread(symbol: str = "BTC") -> dict:
     async def binance_price():
         try:
             async with httpx.AsyncClient(timeout=5) as c:
-                r = await c.get(f"https://api.binance.com/api/v3/ticker/price?symbol={usdt_symbol}")
+                r = await c.get(f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={usdt_symbol}")
                 return ("Binance", float(r.json()["price"]))
         except Exception:
             return ("Binance", None)

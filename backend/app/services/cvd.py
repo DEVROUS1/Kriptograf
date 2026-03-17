@@ -8,7 +8,7 @@ async def get_cvd_data(symbol: str = "BTCUSDT", interval: str = "1m", limit: int
     Binance kline'da taker_buy_base_volume alanı alış hacmini verir.
     """
     try:
-        url = (f"https://api.binance.com/api/v3/klines"
+        url = (f"https://fapi.binance.com/fapi/v1/klines"
                f"?symbol={symbol.upper()}&interval={interval}&limit={limit}")
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.get(url)

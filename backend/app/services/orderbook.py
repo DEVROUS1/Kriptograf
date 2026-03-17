@@ -5,7 +5,7 @@ async def get_orderbook_heatmap(symbol: str = "BTCUSDT", depth: int = 50) -> dic
     Binance order book derinliğini alır.
     Alış ve satış duvarlarını yoğunluk değerleriyle döner.
     """
-    url = f"https://api.binance.com/api/v3/depth?symbol={symbol.upper()}&limit={depth}"
+    url = f"https://fapi.binance.com/fapi/v1/depth?symbol={symbol.upper()}&limit={depth}"
     async with httpx.AsyncClient() as client:
         r = await client.get(url)
         data = r.json()

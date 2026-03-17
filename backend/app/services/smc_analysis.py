@@ -47,7 +47,7 @@ async def smc_analiz(symbol: str = "BTCUSDT", interval: str = "4h") -> dict:
     try:
         async with httpx.AsyncClient(timeout=12) as c:
             r = await c.get(
-                f"https://api.binance.com/api/v3/klines"
+                f"https://fapi.binance.com/fapi/v1/klines"
                 f"?symbol={usdt}&interval={interval}&limit=100"
             )
             r.raise_for_status()
@@ -55,7 +55,7 @@ async def smc_analiz(symbol: str = "BTCUSDT", interval: str = "4h") -> dict:
             if not isinstance(klines, list) or len(klines) < 30:
                 raise ValueError("Insufficient klines data")
 
-            p = await c.get(f"https://api.binance.com/api/v3/ticker/price?symbol={usdt}")
+            p = await c.get(f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={usdt}")
             p.raise_for_status()
             guncel = float(p.json()["price"])
     except Exception:

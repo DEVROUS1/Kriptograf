@@ -14,7 +14,7 @@ async def _piyasa_verisi(symbol: str) -> dict:
     async def fiyat():
         try:
             async with httpx.AsyncClient(timeout=5) as c:
-                r = await c.get(f"https://api.binance.com/api/v3/ticker/24hr?symbol={usdt}")
+                r = await c.get(f"https://fapi.binance.com/fapi/v1/ticker/24hr?symbol={usdt}")
                 d = r.json()
                 if "lastPrice" not in d:
                     return 0.0, 0.0
@@ -45,7 +45,7 @@ async def _piyasa_verisi(symbol: str) -> dict:
         try:
             async with httpx.AsyncClient(timeout=5) as c:
                 r = await c.get(
-                    f"https://api.binance.com/api/v3/klines"
+                    f"https://fapi.binance.com/fapi/v1/klines"
                     f"?symbol={usdt}&interval=1h&limit=15"
                 )
             closes = [float(k[4]) for k in r.json()]

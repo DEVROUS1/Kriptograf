@@ -18,9 +18,7 @@ class AppConfig {
   static String get backendWsUrl => wsBaseUrl;
 
   static const List<String> supportedSymbols = [
-    'btcusdt', 'ethusdt', 'bnbusdt', 'solusdt', 'xrpusdt',
-    'adausdt', 'dogeusdt', 'avaxusdt', 'maticusdt', 'dotusdt',
-    'linkusdt', 'uniusdt', 'atomusdt', 'ltcusdt', 'bchusdt',
+    'btcusdt', 'ethusdt', 'solusdt', 'xrpusdt', 'zecusdt', 'dogeusdt', '1000pepeusdt', 'bnxusdt', 'bnbusdt', 'taousdt', 'animeusdt', 'polyxusdt', 'asterusdt', 'degousdt', 'adausdt', 'suiusdt', 'trumpusdt', 'avaxusdt', 'nearusdt', 'linkusdt', 'dotusdt', 'cfgusdt', 'vanryusdt', 'fetusdt', 'filusdt', 'paxgusdt', 'vidtusdt', 'sxpusdt', 'agixusdt', 'ltcusdt', 'wldusdt', 'linausdt', 'memefiusdt', 'enausdt', 'leverusdt', 'neiroethusdt', 'ftmusdt', 'bchusdt', 'pixelusdt', 'crclusdt', 'xplusdt', 'trxusdt', 'wavesusdt', 'aaveusdt', 'wifusdt', 'uniusdt', 'omniusdt', 'yalausdt', 'ambusdt', 'hyperusdt', 'triausdt', 'bswusdt', 'oceanusdt', 'beatusdt', 'straxusdt', 'dashusdt', 'penguusdt', 'renusdt', 'unfiusdt', 'opnusdt', 'virtualusdt', '1000shibusdt', 'grassusdt', 'renderusdt', 'dgbusdt', '1000bonkusdt', 'troyusdt', 'humausdt', 'arbusdt', 'irusdt', 'xlmusdt', 'banusdt', 'kiteusdt', 'hbarusdt', 'crvusdt', 'litusdt', 'xanusdt', 'rvnusdt', 'hifiusdt', 'aptusdt', 'tlmusdt', 'tslausdt', 'omusdt', 'xmrusdt', 'icpusdt', 'tonusdt', 'zenusdt', 'shibusdt', 'ldousdt', 'opudsdt', 'mkrudst', 'axsusdt', 'sandusdt', 'manausdt', 'flowusdt', 'galausdt', 'runeusdt', 'injusdt', 'lqtyusdt', 'rdntusdt'
   ];
 
   static const List<String> supportedIntervals = [

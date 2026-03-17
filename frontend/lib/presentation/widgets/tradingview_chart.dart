@@ -117,12 +117,10 @@ new TradingView.widget({
   }
 
   void _updateChart(String symbol, String interval) {
-    final tvInterval = _intervalMap[interval] ?? '60';
-    final tvSymbol = 'BINANCE:${symbol.toUpperCase()}';
-    _iframe?.contentWindow?.postMessage(
-      {'symbol': tvSymbol, 'interval': tvInterval},
-      '*',
-    );
+    setState(() {
+      _viewId = 'tv-chart-${DateTime.now().millisecondsSinceEpoch}';
+      _registerView();
+    });
   }
 
   @override
@@ -136,7 +134,7 @@ new TradingView.widget({
 
     return Container(
       color: AppTheme.background,
-      child: HtmlElementView(viewType: _viewId),
+      child: HtmlElementView(key: ValueKey(_viewId), viewType: _viewId),
     );
   }
 }

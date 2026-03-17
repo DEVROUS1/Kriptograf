@@ -8,7 +8,7 @@ async def hesapla_indikatorler(symbol: str = "BTCUSDT", interval: str = "1h") ->
     try:
         async with httpx.AsyncClient(timeout=10) as c:
             r = await c.get(
-                f"https://api.binance.com/api/v3/klines"
+                f"https://fapi.binance.com/fapi/v1/klines"
                 f"?symbol={usdt}&interval={interval}&limit=200"
             )
             r.raise_for_status()

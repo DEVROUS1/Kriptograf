@@ -7,11 +7,11 @@ async def hesapla_sinyal(symbol: str = "BTCUSDT") -> dict:
 
     async with httpx.AsyncClient(timeout=10) as client:
         klines_r = await client.get(
-            f"https://api.binance.com/api/v3/klines"
+            f"https://fapi.binance.com/fapi/v1/klines"
             f"?symbol={usdt}&interval=1h&limit=50"
         )
         ticker_r = await client.get(
-            f"https://api.binance.com/api/v3/ticker/24hr?symbol={usdt}"
+            f"https://fapi.binance.com/fapi/v1/ticker/24hr?symbol={usdt}"
         )
 
     klines = klines_r.json()

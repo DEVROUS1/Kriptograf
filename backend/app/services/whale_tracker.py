@@ -14,10 +14,10 @@ async def get_recent_whale_trades(symbol: str = "BTCUSDT") -> list[dict]:
     Her işlem için tahmini USD değeri hesaplar.
     $500K üzerindeki işlemleri döner.
     """
-    url = f"https://api.binance.com/api/v3/trades?symbol={symbol.upper()}&limit=1000"
+    url = f"https://fapi.binance.com/fapi/v1/trades?symbol={symbol.upper()}&limit=1000"
     async with httpx.AsyncClient() as client:
         # Önce güncel fiyatı al
-        price_r = await client.get(f"https://api.binance.com/api/v3/ticker/price?symbol={symbol.upper()}")
+        price_r = await client.get(f"https://fapi.binance.com/fapi/v1/ticker/price?symbol={symbol.upper()}")
         price = float(price_r.json()["price"])
         
         trades_r = await client.get(url)
