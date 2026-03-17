@@ -8,6 +8,7 @@ enum DashTab {
   onchain,
   piyasalar,
   portfoy,
+  balina,
 }
 
 extension DashTabExt on DashTab {
@@ -18,6 +19,7 @@ extension DashTabExt on DashTab {
         DashTab.onchain => 'On-Chain',
         DashTab.piyasalar => 'Piyasalar',
         DashTab.portfoy => 'Portföy',
+        DashTab.balina => 'Balina',
       };
 
   IconData get ikon => switch (this) {
@@ -27,6 +29,7 @@ extension DashTabExt on DashTab {
         DashTab.onchain => Icons.link_rounded,
         DashTab.piyasalar => Icons.bar_chart_rounded,
         DashTab.portfoy => Icons.account_balance_wallet_rounded,
+        DashTab.balina => Icons.waves_rounded,
       };
 }
 

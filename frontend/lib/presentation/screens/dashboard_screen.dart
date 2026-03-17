@@ -26,6 +26,7 @@ import '../widgets/onchain_widget.dart';
 import 'markets_screen.dart';
 import 'portfolio_screen.dart';
 import 'settings_screen.dart';
+import 'whale_screen.dart';
 import '../providers/dashboard_provider.dart';
 import '../providers/selected_coin_provider.dart';
 
@@ -249,6 +250,7 @@ class _GenisMerkez extends ConsumerWidget {
       case DashTab.onchain: return 2;
       case DashTab.piyasalar: return 3;
       case DashTab.portfoy: return 4;
+      case DashTab.balina: return 5;
     }
   }
 
@@ -264,6 +266,7 @@ class _GenisMerkez extends ConsumerWidget {
         _OnchainMerkez(),            // Index 2
         MarketsScreen(),             // Index 3
         PortfolioScreen(),           // Index 4
+        WhaleScreen(),               // Index 5
       ],
     );
   }
@@ -532,6 +535,8 @@ class _MobilIcerik extends ConsumerWidget {
         MarketsScreen(),
         // Tab 5: Portfoy
         PortfolioScreen(),
+        // Tab 6: Balina
+        WhaleScreen(),
       ],
     );
   }
