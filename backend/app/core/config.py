@@ -12,7 +12,7 @@ class Settings(BaseSettings):
     secret_key: str = "change-me"
     debug: bool = False
     log_level: str = "info"
-    allowed_origins: Any = ["http://localhost:3000", "http://localhost"]
+    allowed_origins: List[str] = ["*"]
     groq_api_key: str = ""
 
     @field_validator("allowed_origins", mode="before")
