@@ -33,7 +33,7 @@ class MarketListNotifier extends StateNotifier<List<MarketModel>> {
   
   void _connectWebSocket() {
     try {
-      _channel = WebSocketChannel.connect(Uri.parse('${AppConfig.backendWsUrl}/markets'));
+      _channel = WebSocketChannel.connect(Uri.parse('${AppConfig.backendWsUrl}/ws/markets'));
       _channel!.stream.listen((message) {
         if (message == 'ping') {
           _channel!.sink.add('pong');

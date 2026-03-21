@@ -8,7 +8,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-WHALE_THRESHOLD_USD = 500_000
+WHALE_THRESHOLD_USD = 50_000
 
 
 async def get_recent_whale_trades(symbol: str = "BTCUSDT") -> list[dict]:
