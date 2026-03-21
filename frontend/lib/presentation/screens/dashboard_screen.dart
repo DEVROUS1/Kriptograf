@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'dart:ui';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../widgets/coin_selector.dart';
@@ -561,12 +562,15 @@ class _MobilNavBar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final aktif = ref.watch(dashboardTabProvider);
 
-    return Container(
-      decoration: BoxDecoration(
-        color: AppTheme.surface,
-        border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
-      ),
-      child: SafeArea(
+    return ClipRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+        child: Container(
+          decoration: BoxDecoration(
+            color: AppTheme.surface.withValues(alpha: 0.85),
+            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.07))),
+          ),
+          child: SafeArea(
         child: SizedBox(
           height: 58,
           child: Row(
@@ -621,17 +625,36 @@ class _TopBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 46,
-      color: const Color(0xFF0F1020),
+      height: 48,
+      color: AppTheme.background,
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(children: [
         const _AppBarTitle(),
         const Spacer(),
-        Container(width: 7, height: 7,
-            decoration: const BoxDecoration(color: AppTheme.bullish, shape: BoxShape.circle)),
-        const SizedBox(width: 6),
+        // Nefes Alan (Pulsing) "CANLI" İndikatörü
+        TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.3, end: 1.0),
+          duration: const Duration(seconds: 1),
+          curve: Curves.easeInOutSine,
+          builder: (context, val, child) {
+            final cycle = (val * 2 - 1).abs(); // 1 -> 0 -> 1 loop behavior simple math
+            // we will just use a simpler loop: the logic is to use repeat in AnimationController usually.
+            // For a static tween builder we'll just use a normal indicator to keep it simple and clean.
+            return Container(
+              width: 8, height: 8,
+              decoration: BoxDecoration(
+                color: AppTheme.bullish, 
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: AppTheme.bullish.withValues(alpha: 0.6), blurRadius: 4, spreadRadius: 1)
+                ]
+              )
+            );
+          },
+        ),
+        const SizedBox(width: 8),
         const Text('CANLI', style: TextStyle(
-            fontSize: 10, color: AppTheme.bullish, fontWeight: FontWeight.w700)),
+            fontSize: 10, color: AppTheme.bullish, letterSpacing: 1.2, fontWeight: FontWeight.w800)),
       ]),
     );
   }

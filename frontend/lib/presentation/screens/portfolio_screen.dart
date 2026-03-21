@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/formatters.dart';
 import '../../data/models/portfolio_model.dart';
 import '../providers/global_markets_provider.dart';
 
@@ -146,7 +147,7 @@ class _ToplamKart extends StatelessWidget {
         Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           const Text('Toplam Değer (USD)',
               style: TextStyle(fontSize: 11, color: Color(0xFF8890b0))),
-          Text('\$${portfoy.toplamUsd.toStringAsFixed(2)}',
+          Text(Formatters.formatPara(portfoy.toplamUsd, tl: false),
               style: const TextStyle(
                   fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),
         ]),
@@ -154,7 +155,7 @@ class _ToplamKart extends StatelessWidget {
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
           const Text('Toplam (TL)',
               style: TextStyle(fontSize: 11, color: Color(0xFF8890b0))),
-          Text('₺${portfoy.toplamTl.toStringAsFixed(0)}',
+          Text(Formatters.formatPara(portfoy.toplamTl, tl: true),
               style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w700,
@@ -311,7 +312,7 @@ class _VarlikSatiri extends StatelessWidget {
                       fontSize: 13,
                       fontWeight: FontWeight.w600)),
               Text(
-                  '${asset.miktar} adet × \$${asset.fiyatUsd.toStringAsFixed(2)}',
+                  '${asset.miktar} adet × ${Formatters.formatKriptoFiyat(asset.fiyatUsd)}',
                   style: const TextStyle(
                       color: Color(0xFF6b6f8e), fontSize: 11)),
               // Alış fiyatı & K/Z
@@ -320,7 +321,7 @@ class _VarlikSatiri extends StatelessWidget {
                   final af = alisFiyati;
                   final kz = karZararYuzde;
                   return Text(
-                    'Alış: \$${af.toStringAsFixed(2)}'
+                    'Alış: ${Formatters.formatKriptoFiyat(af!)}'
                     '${kz != null ? '  ${kz >= 0 ? '+' : ''}${kz.toStringAsFixed(1)}%' : ''}',
                     style: TextStyle(
                         color: karZararColor,
@@ -331,12 +332,12 @@ class _VarlikSatiri extends StatelessWidget {
             ]),
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-            Text('\$${asset.degerUsd.toStringAsFixed(2)}',
+            Text(Formatters.formatPara(asset.degerUsd, tl: false),
                 style: const TextStyle(
                     color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w700)),
-            Text('₺${asset.degerTl.toStringAsFixed(0)}',
+            Text(Formatters.formatPara(asset.degerTl, tl: true),
                 style: const TextStyle(
                     color: AppTheme.bullish, fontSize: 11)),
           ]),
