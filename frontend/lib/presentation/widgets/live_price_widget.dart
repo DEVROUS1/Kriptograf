@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/utils/formatters.dart';
 import '../providers/market_provider.dart';
 import '../providers/selected_coin_provider.dart';
 
@@ -45,10 +46,14 @@ class _MarketDataView extends ConsumerWidget {
       return const SizedBox(height: 38); // Yüklenme anında kaymayı önlemek için placeholder boşluk
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Wrap(
+      alignment: WrapAlignment.spaceBetween,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 16,
+      runSpacing: 12,
       children: [
         Row(
+          mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Text(
@@ -68,22 +73,18 @@ class _MarketDataView extends ConsumerWidget {
         // Statik veriler 24s Yüksek/Düşük, bunlar daha az değişir fakat yine de izole etmek hızlandırır.
         RepaintBoundary(
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              _buildStat('24s Yüksek', _formatNumber(selectedMarket.high24h)),
+              _buildStat('24s Yüksek', Formatters.formatKriptoFiyat(selectedMarket.high24h)),
               const SizedBox(width: 16),
-              _buildStat('24s Düşük', _formatNumber(selectedMarket.low24h)),
+              _buildStat('24s Düşük', Formatters.formatKriptoFiyat(selectedMarket.low24h)),
               const SizedBox(width: 16),
-              _buildStat('24s Hacim', '\$${(selectedMarket.volume / 1000000).toStringAsFixed(2)}M'),
+              _buildStat('24s Hacim', Formatters.formatHacim(selectedMarket.volume)),
             ],
           ),
         ),
       ],
     );
-  }
-
-  String _formatNumber(double value) {
-    if (value < 1) return '\$${value.toStringAsFixed(4)}';
-    return '\$${value.toStringAsFixed(2)}';
   }
 
   Widget _buildStat(String label, String value) {
@@ -137,9 +138,7 @@ class _PriceAnimatorState extends State<_PriceAnimator> {
   Widget build(BuildContext context) {
     final changeColor = widget.changePercent >= 0 ? AppTheme.bullish : AppTheme.bearish;
     
-    final formattedPrice = widget.price < 1 
-      ? widget.price.toStringAsFixed(5) 
-      : widget.price.toStringAsFixed(2);
+    final formattedPrice = Formatters.formatKriptoFiyat(widget.price);
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,

@@ -30,4 +30,12 @@ class Formatters {
     }
     return '\$${f.format(miktar)}';
   }
+
+  /// Kripto hacimleri (12.5M, 1.2B) vb kısa formatta döndürür.
+  static String formatHacim(double hacim) {
+    if (hacim >= 1e9) return '\$${(hacim / 1e9).toStringAsFixed(2)}B';
+    if (hacim >= 1e6) return '\$${(hacim / 1e6).toStringAsFixed(2)}M';
+    if (hacim >= 1e3) return '\$${(hacim / 1e3).toStringAsFixed(0)}K';
+    return '\$${hacim.toStringAsFixed(0)}';
+  }
 }

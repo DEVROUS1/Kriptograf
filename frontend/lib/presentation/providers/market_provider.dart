@@ -42,8 +42,22 @@ class MarketListNotifier extends StateNotifier<List<MarketModel>> {
         if (message == 'Rate limit exceeded') return;
         
         try {
-          final List<dynamic> data = jsonDecode(message);
-          state = data.map((json) => MarketModel.fromJson(json)).toList();
+          final List<dynamic> newJsonData = jsonDecode(message);
+          final currentState = [...state];
+          
+          for (final json in newJsonData) {
+            final parsed = MarketModel.fromJson(json);
+            final index = currentState.indexWhere((m) => m.symbol == parsed.symbol);
+            if (index != -1) {
+              currentState[index] = currentState[index].copyWith(
+                price: parsed.price,
+                changePercent: parsed.changePercent,
+              );
+            } else {
+              currentState.add(parsed);
+            }
+          }
+          state = currentState;
         } catch (e) {
           // Parse error
         }
