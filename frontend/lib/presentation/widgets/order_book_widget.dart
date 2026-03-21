@@ -122,15 +122,15 @@ class _OrderBookWidgetState extends ConsumerState<OrderBookWidget> with SingleTi
              )
           else ...[
             // Title Bar
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               child: Row(
                 children: [
-                  const Text('FİYAT', style: TextStyle(color: Color(0xFF6b6f8e), fontSize: 9, fontWeight: FontWeight.bold)),
-                  const Spacer(),
-                  const Text('MİKTAR', style: TextStyle(color: Color(0xFF6b6f8e), fontSize: 9, fontWeight: FontWeight.bold)),
-                  const SizedBox(width: 25),
-                  const Text('TOPLAM', style: TextStyle(color: Color(0xFF6b6f8e), fontSize: 9, fontWeight: FontWeight.bold)),
+                  Text('FİYAT', style: TextStyle(color: Color(0xFF6b6f8e), fontSize: 9, fontWeight: FontWeight.bold)),
+                  Spacer(),
+                  Text('MİKTAR', style: TextStyle(color: Color(0xFF6b6f8e), fontSize: 9, fontWeight: FontWeight.bold)),
+                  SizedBox(width: 25),
+                  Text('TOPLAM', style: TextStyle(color: Color(0xFF6b6f8e), fontSize: 9, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -194,7 +194,7 @@ class _OrderBookWidgetState extends ConsumerState<OrderBookWidget> with SingleTi
                    const SizedBox(width: 20),
                    SizedBox(
                      width: 45,
-                     child: Text((row.price * row.volume / 1000).toStringAsFixed(1) + 'K', 
+                     child: Text('${(row.price * row.volume / 1000).toStringAsFixed(1)}K', 
                        textAlign: TextAlign.right, style: const TextStyle(color: Color(0xFF8890b0), fontSize: 11, fontWeight: FontWeight.w500)),
                    )
                  ],
@@ -244,6 +244,6 @@ class _Header extends StatelessWidget {
 class _OrderRow {
   final double price;
   final double volume;
-  double depth;
-  _OrderRow({required this.price, required this.volume, this.depth = 0});
+  double depth = 0.0;
+  _OrderRow({required this.price, required this.volume});
 }

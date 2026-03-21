@@ -1,3 +1,4 @@
-# Bybit API Integration Placeholder
-async def get_bybit_markets():
-    pass
+"""
+Bybit API entegrasyonu — gelecekte implement edilecek.
+Şu an yalnızca Binance Futures kullanılmaktadır.
+"""

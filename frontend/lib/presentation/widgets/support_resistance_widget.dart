@@ -147,12 +147,6 @@ class _SeviyeSatiri extends StatelessWidget {
       _ => const Color(0xFF6b6f8e),
     };
 
-    final gucYuzde = switch (guc) {
-      'COK_GUCLU' => 1.0,
-      'GUCLU' => 0.75,
-      'ORTA' => 0.5,
-      _ => 0.25,
-    };
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),

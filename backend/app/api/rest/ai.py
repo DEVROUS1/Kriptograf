@@ -67,7 +67,7 @@ async def _piyasa_verisi(symbol: str) -> dict:
 async def ai_ozet(symbol: str):
     if not settings.groq_api_key:
         return {
-            "ozet": "Yapay zeka analisti kullanılmıyor. Lütfen sunucu ayarlarından (Render Environment Variables) GROQ_API_KEY değişkenini ekleyin.",
+            "ozet": "Yapay zeka analisti devre dışı. Lütfen .env dosyasına GROQ_API_KEY değişkenini ekleyin.",
             "sembol": symbol.upper(),
             "olusturulma": "Şimdi",
             "model": "Sistem",

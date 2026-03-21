@@ -3,6 +3,8 @@ import 'presentation/screens/dashboard_screen.dart';
 import 'presentation/screens/markets_screen.dart';
 import 'presentation/screens/news_screen.dart';
 import 'presentation/screens/portfolio_screen.dart';
+import 'presentation/screens/whale_screen.dart';
+import 'presentation/screens/settings_screen.dart';
 
 final goRouter = GoRouter(
   initialLocation: '/',
@@ -22,6 +24,14 @@ final goRouter = GoRouter(
     GoRoute(
       path: '/portfoy',
       builder: (context, state) => const PortfolioScreen(),
+    ),
+    GoRoute(
+      path: '/balinalar',
+      builder: (context, state) => const WhaleScreen(),
+    ),
+    GoRoute(
+      path: '/ayarlar',
+      builder: (context, state) => const SettingsScreen(),
     ),
   ],
 );

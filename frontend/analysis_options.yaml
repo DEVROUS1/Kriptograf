@@ -2,4 +2,13 @@ include: package:flutter_lints/flutter.yaml
 
 analyzer:
   errors:
-    invalid_annotation_target: ignore
+    # tradingview_chart.dart dart:html kullanımı Flutter Web'de zorunlu
+    # package:web geçişi büyük refactor gerektirir — şimdilik bastırılıyor
+    avoid_web_libraries_in_flutter: ignore
+
+linter:
+  rules:
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_interpolation_to_compose_strings: true
+    avoid_print: true

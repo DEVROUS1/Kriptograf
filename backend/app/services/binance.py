@@ -78,17 +78,36 @@ async def get_funding_rate():
         await set_cache(cache_key, result, expire=60)
         return result
 
-async def get_liquidations():
-    cache_key = "liquidations"
+async def get_liquidations(symbol: str = "BTCUSDT", limit: int = 50):
+    """Binance Futures zorla tasfiye emirleri (gerçek veri)."""
+    cache_key = f"liquidations_{symbol}_{limit}"
     cached = await get_cache(cache_key)
-    if cached: return cached
-    
-    result = [
-        {"symbol": "BTCUSDT", "side": "SELL", "amount": 1250000, "price": 65000},
-        {"symbol": "ETHUSDT", "side": "BUY", "amount": 500000, "price": 3500},
-    ]
-    await set_cache(cache_key, result, expire=10)
-    return result
+    if cached:
+        return cached
+
+    try:
+        async with httpx.AsyncClient(timeout=8) as client:
+            r = await client.get(
+                f"{BINANCE_FUTURES_API}/fapi/v1/allForceOrders",
+                params={"symbol": symbol.upper(), "limit": limit},
+            )
+            r.raise_for_status()
+            orders = r.json()
+
+        result = [
+            {
+                "symbol": o["symbol"],
+                "side": "LONG" if o["side"] == "SELL" else "SHORT",
+                "amount": float(o["origQty"]),
+                "price": float(o["price"]),
+                "time": int(o["time"]),
+            }
+            for o in orders
+        ]
+        await set_cache(cache_key, result, expire=15)
+        return result
+    except Exception:
+        return []
 
 async def stream_kline(symbol: str, interval: str, room: str):
     ws_url = f"{BINANCE_WS_URL}/{symbol.lower()}@kline_{interval}"

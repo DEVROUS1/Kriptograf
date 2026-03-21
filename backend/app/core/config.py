@@ -23,6 +23,15 @@ class Settings(BaseSettings):
             return [i.strip() for i in v.split(",") if i.strip()]
         return v
 
+    @field_validator("secret_key", mode="after")
+    @classmethod
+    def warn_secret_key(cls, v):
+        if v == "change-me":
+            import logging
+            logging.warning("GÜVENLİK UYARISI: 'secret_key' varsayılan ayarda ('change-me') bırakılmış! Lütfen production için .env dosyasında değiştirin.")
+        return v
+
+
 
 @lru_cache
 def get_settings() -> Settings:

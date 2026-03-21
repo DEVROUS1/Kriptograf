@@ -97,7 +97,7 @@ class SettingsScreen extends ConsumerWidget {
             ? Switch(
                 value: switchValue,
                 onChanged: (val) {},
-                activeColor: AppTheme.primary,
+                activeThumbColor: AppTheme.primary,
               )
             : const Icon(Icons.arrow_forward_ios_rounded, color: Colors.white24, size: 14),
         onTap: isSwitch ? null : () {},

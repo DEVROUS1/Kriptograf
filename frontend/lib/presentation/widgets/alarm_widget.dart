@@ -24,8 +24,11 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final alarmlar = ref.watch(alarmProvider);
-    final seciliCoin = ref.watch(selectedCoinProvider.select((coin) => coin.symbol.toUpperCase()));
+    // AsyncNotifier → .value ile mevcut listeyi al, yükleniyorsa boş liste
+    final alarmlarAsync = ref.watch(alarmProvider);
+    final alarmlar = alarmlarAsync.value ?? [];
+    final seciliCoin =
+        ref.watch(selectedCoinProvider.select((c) => c.symbol.toUpperCase()));
     final piyasalar = ref.watch(marketListProvider);
 
     // Aktif coinin güncel fiyatı
@@ -34,29 +37,28 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
       guncelFiyat = piyasalar.firstWhere((p) => p.symbol == seciliCoin).price;
     } catch (_) {}
 
-    // Alarm Kontrolleri: Her alarm kendi sembolünün güncel fiyatıyla kontrol edilir!
+    // Alarm Kontrolleri
     if (piyasalar.isNotEmpty) {
       for (final alarm in alarmlar) {
-        if (!(alarm['aktif'] as bool)) continue;
-        
+        if (!(alarm['aktif'] as bool? ?? true)) continue;
+
         final hedef = (alarm['hedef'] as num).toDouble();
         final yon = alarm['yon'] as String;
         final sy = alarm['sembol'] as String;
         final id = alarm['id'] as String;
-        
-        // Bu alarmın coini güncel piyasa listesinde var mı? Fiyatı ne?
+
         double? eFiyat;
         try {
           eFiyat = piyasalar.firstWhere((p) => p.symbol == sy).price;
         } catch (_) {}
 
         if (eFiyat != null) {
-          final tetiklendi = yon == 'YUKARI' ? eFiyat >= hedef : eFiyat <= hedef;
+          final tetiklendi =
+              yon == 'YUKARI' ? eFiyat >= hedef : eFiyat <= hedef;
 
           if (tetiklendi) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               _bildirimGoster(context, alarm, eFiyat!);
-              // Sonsuz döngü ve spam'i önlemek için alarm tetiklendikten sonra sistemden uçur.
               ref.read(alarmProvider.notifier).sil(id);
             });
           }
@@ -78,19 +80,31 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
             child: Row(children: [
               Container(
-                width: 8, height: 8,
+                width: 8,
+                height: 8,
                 decoration: const BoxDecoration(
                   color: AppTheme.warning, shape: BoxShape.circle,
                 ),
               ),
               const SizedBox(width: 7),
               const Text('FİYAT ALARMLARI',
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700,
-                      color: Color(0xFF5a6080), letterSpacing: 0.8)),
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w700,
+                      color: Color(0xFF5a6080),
+                      letterSpacing: 0.8)),
               const Spacer(),
-              if (guncelFiyat != null)
+              if (alarmlarAsync.isLoading)
+                const SizedBox(
+                    width: 12,
+                    height: 12,
+                    child: CircularProgressIndicator(strokeWidth: 1.5)),
+              if (guncelFiyat != null) ...[
+                const SizedBox(width: 8),
                 Text('Anlık: \$${guncelFiyat.toStringAsFixed(2)}',
-                    style: const TextStyle(fontSize: 10, color: Color(0xFF5a6080))),
+                    style:
+                        const TextStyle(fontSize: 10, color: Color(0xFF5a6080))),
+              ],
             ]),
           ),
 
@@ -106,21 +120,21 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
                     hintText: guncelFiyat != null
                         ? guncelFiyat.toStringAsFixed(0)
                         : 'Hedef fiyat',
-                    hintStyle: const TextStyle(
-                        fontSize: 12, color: Color(0xFF3a3d55)),
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 12, vertical: 8),
+                    hintStyle:
+                        const TextStyle(fontSize: 12, color: Color(0xFF3a3d55)),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.04),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08)),
+                      borderSide:
+                          BorderSide(color: Colors.white.withValues(alpha: 0.08)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.08)),
+                      borderSide:
+                          BorderSide(color: Colors.white.withValues(alpha: 0.08)),
                     ),
                   ),
                   keyboardType:
@@ -135,8 +149,8 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.04),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.08)),
+                  border:
+                      Border.all(color: Colors.white.withValues(alpha: 0.08)),
                 ),
                 child: Row(children: [
                   _YonButon(
@@ -159,8 +173,8 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
               GestureDetector(
                 onTap: _alarmEkle,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 9),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
                   decoration: BoxDecoration(
                     color: AppTheme.primary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
@@ -190,13 +204,15 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
             ...alarmlar.map((a) {
               double? ozelAnlikFiyat;
               try {
-                ozelAnlikFiyat = piyasalar.firstWhere((p) => p.symbol == a['sembol']).price;
+                ozelAnlikFiyat =
+                    piyasalar.firstWhere((p) => p.symbol == a['sembol']).price;
               } catch (_) {}
-              
+
               return _AlarmSatiri(
                 alarm: a,
-                guncelFiyat: ozelAnlikFiyat ?? guncelFiyat, // Kendi fiyatı yoksa fallback
-                onSil: () => ref.read(alarmProvider.notifier).sil(a['id'] as String),
+                guncelFiyat: ozelAnlikFiyat ?? guncelFiyat,
+                onSil: () =>
+                    ref.read(alarmProvider.notifier).sil(a['id'] as String),
               );
             }),
 
@@ -209,10 +225,8 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
   void _alarmEkle() {
     final fiyat = double.tryParse(_fiyatCtrl.text.trim());
     if (fiyat == null || fiyat <= 0) return;
-    
-    // Doğru sembol ile ekle! Önceden 'BTC' statik yazılıydı.
+
     final coin = ref.read(selectedCoinProvider);
-    
     ref.read(alarmProvider.notifier).ekle(
           sembol: coin.symbol.toUpperCase(),
           hedefFiyat: fiyat,
@@ -233,12 +247,15 @@ class _AlarmWidgetState extends ConsumerState<AlarmWidget> {
         content: Row(children: [
           Icon(
             yon == 'YUKARI' ? Icons.arrow_upward : Icons.arrow_downward,
-            color: Colors.white, size: 16,
+            color: Colors.white,
+            size: 16,
           ),
           const SizedBox(width: 8),
           Text(
-            'ALARM: ${alarm['sembol'].toString().replaceAll('USDT', '')} \$${guncel.toStringAsFixed(2)} → '
-            'Hedef \$${hedef.toStringAsFixed(2)} ${yon == 'YUKARI' ? 'Aşıldı' : 'Altına İndi'}!',
+            'ALARM: ${alarm['sembol'].toString().replaceAll('USDT', '')} '
+            '\$${guncel.toStringAsFixed(2)} → '
+            'Hedef \$${hedef.toStringAsFixed(2)} '
+            '${yon == 'YUKARI' ? 'Aşıldı' : 'Altına İndi'}!',
             style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -277,7 +294,8 @@ class _YonButon extends StatelessWidget {
         child: Text(etiket,
             style: TextStyle(
                 fontSize: 13,
-                color: secili ? color : Colors.white.withValues(alpha: 0.3))),
+                color:
+                    secili ? color : Colors.white.withValues(alpha: 0.3))),
       ),
     );
   }
@@ -299,14 +317,7 @@ class _AlarmSatiri extends StatelessWidget {
     final yon = alarm['yon'] as String;
     final color = yon == 'YUKARI' ? AppTheme.bullish : AppTheme.bearish;
 
-    // Tetiklenme yüzdesi hesaplaması (Kendi sembolünün anlık fiyatı üzerinden)
     double ilerleme = 0;
-    
-    // Anlık fiyat dışarıdan (guncelFiyat = seçili coin) gelmek zorunda değil, provider ile izole de alınabilir
-    // ama guncelFiyat parametresi widget tarafından sağlanıyordu. Burada kendi sembolünün güncel fiyatını almak en doğrusu!
-    // ConsumerWidget ile state watch olmadığından, yukarıdan parametre olarak sadece "zaten filtrelenmiş" kendi sembolünün fiyatını verelim.
-    // Ancak dışarıda geçilen (guncelFiyat) genelde "seçili_coin" fiyatı olabiliyor.
-    // Bu yüzden parametre yerine tam ilerlemeyi hesaplamak için güncel fiyatı doğrudan buraya entegre ettik.
     if (guncelFiyat != null && guncelFiyat! > 0) {
       if (yon == 'YUKARI') {
         ilerleme = (guncelFiyat! / hedef).clamp(0.0, 1.0);
@@ -327,7 +338,8 @@ class _AlarmSatiri extends StatelessWidget {
         Row(children: [
           Icon(
             yon == 'YUKARI' ? Icons.arrow_upward : Icons.arrow_downward,
-            size: 13, color: color,
+            size: 13,
+            color: color,
           ),
           const SizedBox(width: 6),
           Text(
@@ -340,13 +352,14 @@ class _AlarmSatiri extends StatelessWidget {
           const Spacer(),
           Text(alarm['sembol'].toString().replaceAll('USDT', ''),
               style: const TextStyle(
-                  fontSize: 9, color: Color(0xFF5a6080), fontWeight: FontWeight.bold)),
+                  fontSize: 9,
+                  color: Color(0xFF5a6080),
+                  fontWeight: FontWeight.bold)),
           const SizedBox(width: 8),
           GestureDetector(
             onTap: onSil,
             child: Icon(Icons.close_rounded,
-                size: 14,
-                color: Colors.white.withValues(alpha: 0.25)),
+                size: 14, color: Colors.white.withValues(alpha: 0.25)),
           ),
         ]),
         const SizedBox(height: 6),
@@ -364,8 +377,7 @@ class _AlarmSatiri extends StatelessWidget {
           alignment: Alignment.centerRight,
           child: Text('%${(ilerleme * 100).toStringAsFixed(1)} tamamlandı',
               style: TextStyle(
-                  fontSize: 9,
-                  color: color.withValues(alpha: 0.5))),
+                  fontSize: 9, color: color.withValues(alpha: 0.5))),
         ),
       ]),
     );

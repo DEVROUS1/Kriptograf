@@ -10,7 +10,6 @@ from app.services.cache import get_cached, set_cached
 router = APIRouter()
 
 BINANCE_API = "https://fapi.binance.com/fapi/v1"
-BINANCE_FAPI = "https://fapi.binance.com/fapi/v1"
 
 IZLENEN_SEMBOLLER = [
     'BTCUSDT', 'ETHUSDT', 'SOLUSDT', 'XRPUSDT', 'ZECUSDT', 'DOGEUSDT', '1000PEPEUSDT', 'BNXUSDT', 'BNBUSDT', 'TAOUSDT', 'ANIMEUSDT', 'POLYXUSDT', 'ASTERUSDT', 'DEGOUSDT', 'ADAUSDT', 'SUIUSDT', 'TRUMPUSDT', 'AVAXUSDT', 'NEARUSDT', 'LINKUSDT', 'DOTUSDT', 'CFGUSDT', 'VANRYUSDT', 'FETUSDT', 'FILUSDT', 'PAXGUSDT', 'VIDTUSDT', 'SXPUSDT', 'AGIXUSDT', 'LTCUSDT', 'WLDUSDT', 'LINAUSDT', 'MEMEFIUSDT', 'ENAUSDT', 'LEVERUSDT', 'NEIROETHUSDT', 'FTMUSDT', 'BCHUSDT', 'PIXELUSDT', 'CRCLUSDT', 'XPLUSDT', 'TRXUSDT', 'WAVESUSDT', 'AAVEUSDT', 'WIFUSDT', 'UNIUSDT', 'OMNIUSDT', 'YALAUSDT', 'AMBUSDT', 'HYPERUSDT', 'TRIAUSDT', 'BSWUSDT', 'OCEANUSDT', 'BEATUSDT', 'STRAXUSDT', 'DASHUSDT', 'PENGUUSDT', 'RENUSDT', 'UNFIUSDT', 'OPNUSDT', 'VIRTUALUSDT', '1000SHIBUSDT', 'GRASSUSDT', 'RENDERUSDT', 'DGBUSDT', '1000BONKUSDT', 'TROYUSDT', 'HUMAUSDT', 'ARBUSDT', 'IRUSDT', 'XLMUSDT', 'BANUSDT', 'KITEUSDT', 'HBARUSDT', 'CRVUSDT', 'LITUSDT', 'XANUSDT', 'RVNUSDT', 'HIFIUSDT', 'APTUSDT', 'TLMUSDT', 'TSLAUSDT', 'OMUSDT', 'XMRUSDT', 'ICPUSDT', 'TONUSDT', 'ZENUSDT', 'SHIBUSDT', 'LDOUSDT', 'OPUSDT', 'MKRUSDT', 'AXSUSDT', 'SANDUSDT', 'MANAUSDT', 'FLOWUSDT', 'GALAUSDT', 'RUNEUSDT', 'INJUSDT', 'LQTYUSDT', 'RDNTUSDT'
@@ -146,9 +145,9 @@ async def acik_faiz():
 
     try:
         async with httpx.AsyncClient(timeout=8) as c:
-            r = await c.get(f"{BINANCE_FAPI}/openInterest?symbol=BTCUSDT")
+            r = await c.get(f"{BINANCE_API}/openInterest?symbol=BTCUSDT")
             btc = r.json()
-            r2 = await c.get(f"{BINANCE_FAPI}/openInterest?symbol=ETHUSDT")
+            r2 = await c.get(f"{BINANCE_API}/openInterest?symbol=ETHUSDT")
             eth = r2.json()
 
         data = {
@@ -176,7 +175,7 @@ async def fonlama_oranlari():
 
     try:
         async with httpx.AsyncClient(timeout=10) as c:
-            r = await c.get(f"{BINANCE_FAPI}/premiumIndex")
+            r = await c.get(f"{BINANCE_API}/premiumIndex")
             data = r.json()
             
             sonuclar = []
@@ -206,7 +205,7 @@ async def likidasyonlar():
     try:
         async with httpx.AsyncClient(timeout=8) as c:
             r = await c.get(
-                f"{BINANCE_FAPI}/allForceOrders?symbol=BTCUSDT&limit=50"
+                f"{BINANCE_API}/allForceOrders?symbol=BTCUSDT&limit=50"
             )
             orders = r.json()
 

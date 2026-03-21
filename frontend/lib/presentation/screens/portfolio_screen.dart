@@ -15,16 +15,20 @@ class PortfolioScreen extends ConsumerStatefulWidget {
 class _State extends ConsumerState<PortfolioScreen> {
   final _sembolCtrl = TextEditingController();
   final _miktarCtrl = TextEditingController();
+  final _alisFiyatiCtrl = TextEditingController();
 
   @override
   void dispose() {
     _sembolCtrl.dispose();
     _miktarCtrl.dispose();
+    _alisFiyatiCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // AsyncNotifier ile portföy listesi
+    final portfoyListeAsync = ref.watch(portfolioNotifierProvider);
     final portfoyAsync = ref.watch(portfolioValueProvider);
 
     return Scaffold(
@@ -33,6 +37,18 @@ class _State extends ConsumerState<PortfolioScreen> {
         title: const Text('Portföyüm'),
         backgroundColor: AppTheme.background,
         automaticallyImplyLeading: false,
+        actions: [
+          if (portfoyListeAsync.isLoading)
+            const Padding(
+              padding: EdgeInsets.only(right: 16),
+              child: Center(
+                child: SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(strokeWidth: 2)),
+              ),
+            ),
+        ],
       ),
       body: Column(children: [
         portfoyAsync.when(
@@ -40,7 +56,7 @@ class _State extends ConsumerState<PortfolioScreen> {
             children: [
               _ToplamKart(portfoy: p),
               _PortfolioPieChart(portfoy: p),
-            ]
+            ],
           ),
           loading: () => const SizedBox(
               height: 80,
@@ -50,13 +66,18 @@ class _State extends ConsumerState<PortfolioScreen> {
         _VarlikEkle(
           sembolCtrl: _sembolCtrl,
           miktarCtrl: _miktarCtrl,
-          onEkle: () {
+          alisFiyatiCtrl: _alisFiyatiCtrl,
+          onEkle: () async {
             final sym = _sembolCtrl.text.trim();
             final mik = double.tryParse(_miktarCtrl.text.trim());
-            if (sym.isNotEmpty && mik != null && mik > 0) {
-              ref.read(portfolioNotifierProvider.notifier).ekle(sym, mik);
+            final alis = double.tryParse(_alisFiyatiCtrl.text.trim());
+            if (sym.isNotEmpty && mik != null && mik > 0 && alis != null && alis > 0) {
+              await ref
+                  .read(portfolioNotifierProvider.notifier)
+                  .ekle(sym, mik, alis);
               _sembolCtrl.clear();
               _miktarCtrl.clear();
+              _alisFiyatiCtrl.clear();
               ref.invalidate(portfolioValueProvider);
             }
           },
@@ -77,18 +98,19 @@ class _State extends ConsumerState<PortfolioScreen> {
                 itemCount: p.varliklar.length,
                 itemBuilder: (ctx, i) {
                   final v = p.varliklar[i];
-                  final yuzde = p.toplamUsd > 0
-                      ? (v.degerUsd / p.toplamUsd) * 100
-                      : 0.0;
+                  final yuzde =
+                      p.toplamUsd > 0 ? (v.degerUsd / p.toplamUsd) * 100 : 0.0;
                   return _VarlikSatiri(
                     asset: v,
                     yuzde: yuzde,
-                    onSil: () {
-                      ref
-                          .read(portfolioNotifierProvider.notifier)
-                          .sil(v.sembol);
-                      ref.invalidate(portfolioValueProvider);
-                    },
+                    onSil: v.id != null
+                        ? () async {
+                            await ref
+                                .read(portfolioNotifierProvider.notifier)
+                                .sil(v.id!);
+                            ref.invalidate(portfolioValueProvider);
+                          }
+                        : null,
                   );
                 },
               );
@@ -149,59 +171,81 @@ class _VarlikEkle extends StatelessWidget {
   const _VarlikEkle({
     required this.sembolCtrl,
     required this.miktarCtrl,
+    required this.alisFiyatiCtrl,
     required this.onEkle,
   });
   final TextEditingController sembolCtrl;
   final TextEditingController miktarCtrl;
+  final TextEditingController alisFiyatiCtrl;
   final VoidCallback onEkle;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-      child: Row(children: [
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: sembolCtrl,
-            decoration: const InputDecoration(
-              hintText: 'Sembol (BTC)',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      child: Column(children: [
+        Row(children: [
+          Expanded(
+            flex: 2,
+            child: TextField(
+              controller: sembolCtrl,
+              decoration: const InputDecoration(
+                hintText: 'Sembol (BTC)',
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              textCapitalization: TextCapitalization.characters,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
-            textCapitalization: TextCapitalization.characters,
-            style: const TextStyle(color: Colors.white, fontSize: 13),
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          flex: 2,
-          child: TextField(
-            controller: miktarCtrl,
-            decoration: const InputDecoration(
-              hintText: 'Miktar (0.5)',
-              contentPadding:
-                  EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          const SizedBox(width: 8),
+          Expanded(
+            flex: 2,
+            child: TextField(
+              controller: miktarCtrl,
+              decoration: const InputDecoration(
+                hintText: 'Miktar (0.5)',
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white, fontSize: 13),
             ),
-            keyboardType:
-                const TextInputType.numberWithOptions(decimal: true),
-            style: const TextStyle(color: Colors.white, fontSize: 13),
           ),
-        ),
-        const SizedBox(width: 8),
-        ElevatedButton(
-          onPressed: onEkle,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppTheme.primary,
-            foregroundColor: Colors.white,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ]),
+        const SizedBox(height: 8),
+        Row(children: [
+          Expanded(
+            flex: 2,
+            child: TextField(
+              controller: alisFiyatiCtrl,
+              decoration: const InputDecoration(
+                hintText: 'Alış fiyatı (USD)',
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              ),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+            ),
           ),
-          child: const Text('Ekle',
-              style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-        ),
+          const SizedBox(width: 8),
+          ElevatedButton.icon(
+            onPressed: onEkle,
+            icon: const Icon(Icons.add_rounded, size: 16),
+            label: const Text('Ekle',
+                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppTheme.primary,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8)),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            ),
+          ),
+        ]),
       ]),
     );
   }
@@ -211,14 +255,23 @@ class _VarlikSatiri extends StatelessWidget {
   const _VarlikSatiri({
     required this.asset,
     required this.yuzde,
-    required this.onSil,
+    this.onSil,
   });
   final PortfolioAsset asset;
   final double yuzde;
-  final VoidCallback onSil;
+  final VoidCallback? onSil;
 
   @override
   Widget build(BuildContext context) {
+    // Kâr/zarar doğrudan modelden — backend hesaplar
+    final karZararYuzde = asset.karZararYuzde;
+    final alisFiyati = asset.alisFiyati;
+    final karZararColor = karZararYuzde == null
+        ? Colors.white
+        : karZararYuzde >= 0
+            ? AppTheme.bullish
+            : AppTheme.bearish;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -249,8 +302,9 @@ class _VarlikSatiri extends StatelessWidget {
           ),
           const SizedBox(width: 10),
           Expanded(
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               Text(asset.sembol,
                   style: const TextStyle(
                       color: Colors.white,
@@ -260,6 +314,20 @@ class _VarlikSatiri extends StatelessWidget {
                   '${asset.miktar} adet × \$${asset.fiyatUsd.toStringAsFixed(2)}',
                   style: const TextStyle(
                       color: Color(0xFF6b6f8e), fontSize: 11)),
+              // Alış fiyatı & K/Z
+              if (alisFiyati != null)
+                Builder(builder: (_) {
+                  final af = alisFiyati;
+                  final kz = karZararYuzde;
+                  return Text(
+                    'Alış: \$${af.toStringAsFixed(2)}'
+                    '${kz != null ? '  ${kz >= 0 ? '+' : ''}${kz.toStringAsFixed(1)}%' : ''}',
+                    style: TextStyle(
+                        color: karZararColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600),
+                  );
+                }),
             ]),
           ),
           Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
@@ -269,7 +337,8 @@ class _VarlikSatiri extends StatelessWidget {
                     fontSize: 13,
                     fontWeight: FontWeight.w700)),
             Text('₺${asset.degerTl.toStringAsFixed(0)}',
-                style: const TextStyle(color: AppTheme.bullish, fontSize: 11)),
+                style: const TextStyle(
+                    color: AppTheme.bullish, fontSize: 11)),
           ]),
           IconButton(
             onPressed: onSil,
@@ -341,14 +410,19 @@ class _PortfolioPieChart extends StatelessWidget {
                 sections: portfoy.varliklar.asMap().entries.map((entry) {
                   final idx = entry.key;
                   final asset = entry.value;
-                  final percentage = portfoy.toplamUsd > 0 ? (asset.degerUsd / portfoy.toplamUsd) * 100 : 0.0;
+                  final percentage = portfoy.toplamUsd > 0
+                      ? (asset.degerUsd / portfoy.toplamUsd) * 100
+                      : 0.0;
                   final color = colors[idx % colors.length];
                   return PieChartSectionData(
                     color: color.withValues(alpha: 0.8),
                     value: percentage,
                     title: '${percentage.toStringAsFixed(0)}%',
                     radius: 20,
-                    titleStyle: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.white),
+                    titleStyle: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
                   );
                 }).toList(),
               ),
@@ -379,8 +453,13 @@ class _PortfolioPieChart extends StatelessWidget {
                         ),
                         const SizedBox(width: 6),
                         Text(
-                          asset.sembol.length > 5 ? asset.sembol.substring(0, 5) : asset.sembol,
-                          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+                          asset.sembol.length > 5
+                              ? asset.sembol.substring(0, 5)
+                              : asset.sembol,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold),
                         ),
                       ],
                     ),

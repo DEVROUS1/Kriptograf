@@ -45,22 +45,10 @@ async def get_global_markets() -> dict:
             return {"USD": None, "EUR": None}
 
     async def altin_fiyat() -> dict | None:
-        """Gram altın TL fiyatı — Bigpara."""
-        try:
-            url = "https://bigpara.hurriyet.com.tr/api/1.0/hisse/list"
-            async with httpx.AsyncClient(timeout=8, headers={"User-Agent": "Mozilla/5.0"}) as c:
-                r = await c.get(
-                    "https://api.altinfiyati.org/api/v1/goldprice",
-                    timeout=6,
-                )
-                d = r.json()
-                return {
-                    "gram_tl": round(float(d.get("gram_satis", 0)), 2),
-                    "ceyrek_tl": round(float(d.get("ceyrek_satis", 0)), 2),
-                    "tam_tl": round(float(d.get("tam_satis", 0)), 2),
-                }
-        except Exception:
-            return None
+        """Gram altın TL fiyatı — Yahoo Finance GC=F (USD/oz) + TCMB USD/TRY kuru."""
+        # Bu fonksiyon asyncio.gather'dan sonra altin_usd ve kurlar ile hesaplanır.
+        # Placeholder olarak None döndururuz, gerçek hesap aşağıda yapılır.
+        return None
 
     async def bist100() -> dict | None:
         """BIST 100 endeksi."""
@@ -98,17 +86,28 @@ async def get_global_markets() -> dict:
         fear_greed(),       # Kripto Korku/Açgözlülük
     )
 
-    # BTC/TRY hesapla
+    # BTC/TRY ve Altın TL hesapla
     btc_try = None
     eth_try = None
+    altin_tl_hesap = None
     try:
-        if kurlar.get("USD"):
+        usd_tl = kurlar.get("USD")
+        if usd_tl:
             btc_data = await yahoo("BTC-USD")
             eth_data = await yahoo("ETH-USD")
             if btc_data:
-                btc_try = round(btc_data["fiyat"] * kurlar["USD"], 0)
+                btc_try = round(btc_data["fiyat"] * usd_tl, 0)
             if eth_data:
-                eth_try = round(eth_data["fiyat"] * kurlar["USD"], 0)
+                eth_try = round(eth_data["fiyat"] * usd_tl, 0)
+            # Gram altın TL = (USD/oz ÷ 31.1035) × USD/TL
+            if altin_usd:
+                gram_usd = altin_usd["fiyat"] / 31.1035
+                gram_tl = gram_usd * usd_tl
+                altin_tl_hesap = {
+                    "gram_tl": round(gram_tl, 2),
+                    "ceyrek_tl": round(gram_tl * 1.75, 2),  # ~1.75 gram
+                    "tam_tl": round(gram_tl * 7.0, 2),       # ~7 gram
+                }
     except Exception:
         pass
 
@@ -125,7 +124,7 @@ async def get_global_markets() -> dict:
             "bist100": {"isim": "BIST 100",  "veri": bist},
             "usd_try": {"isim": "USD/TRY",   "fiyat": kurlar.get("USD")},
             "eur_try": {"isim": "EUR/TRY",   "fiyat": kurlar.get("EUR")},
-            "altin_tl": altin_tl,
+            "altin_tl": altin_tl_hesap,
         },
         "kripto_tl": {
             "btc_try": btc_try,
