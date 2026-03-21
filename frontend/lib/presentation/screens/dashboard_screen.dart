@@ -160,7 +160,7 @@ class _Sidebar extends ConsumerWidget {
 
     return Container(
       width: 64,
-      color: const Color(0xFF0C0D1E),
+      color: AppTheme.surfaceVariant.withValues(alpha: 0.5),
       child: Column(children: [
         const SizedBox(height: 12),
         // Logo
@@ -613,6 +613,8 @@ class _MobilNavBar extends ConsumerWidget {
           ),
         ),
       ),
+      ),
+      ),
     );
   }
 }
@@ -637,16 +639,13 @@ class _TopBar extends StatelessWidget {
           duration: const Duration(seconds: 1),
           curve: Curves.easeInOutSine,
           builder: (context, val, child) {
-            final cycle = (val * 2 - 1).abs(); // 1 -> 0 -> 1 loop behavior simple math
-            // we will just use a simpler loop: the logic is to use repeat in AnimationController usually.
-            // For a static tween builder we'll just use a normal indicator to keep it simple and clean.
             return Container(
               width: 8, height: 8,
               decoration: BoxDecoration(
                 color: AppTheme.bullish, 
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(color: AppTheme.bullish.withValues(alpha: 0.6), blurRadius: 4, spreadRadius: 1)
+                  BoxShadow(color: AppTheme.bullish.withValues(alpha: val * 0.8), blurRadius: val * 6, spreadRadius: val * 2)
                 ]
               )
             );

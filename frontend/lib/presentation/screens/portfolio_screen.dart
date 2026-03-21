@@ -321,7 +321,7 @@ class _VarlikSatiri extends StatelessWidget {
                   final af = alisFiyati;
                   final kz = karZararYuzde;
                   return Text(
-                    'Alış: ${Formatters.formatKriptoFiyat(af!)}'
+                    'Alış: ${Formatters.formatKriptoFiyat(af)}'
                     '${kz != null ? '  ${kz >= 0 ? '+' : ''}${kz.toStringAsFixed(1)}%' : ''}',
                     style: TextStyle(
                         color: karZararColor,

@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   AppTheme._();
 
-  static const Color _primary = Color(0xFF6C63FF);
-  static const Color _bg = Color(0xFF0A0B14);
-  static const Color _surface = Color(0xFF0F1020);
-  static const Color _surfaceVariant = Color(0xFF1A1B2E);
-  static const Color _bullish = Color(0xFF00D68F);
-  static const Color _bearish = Color(0xFFFF4757);
+  // Pro Terminal - Deep Dark Colors
+  static const Color _primary = Color(0xFF5E54FF); // Daha sofistike bir mor
+  static const Color _bg = Color(0xFF07080E); // Tam karanlık uzay siyahı
+  static const Color _surface = Color(0xFF11121C); // Widget arkaplanları
+  static const Color _surfaceVariant = Color(0xFF1A1C29);
+  static const Color _bullish = Color(0xFF00E676); // Neondan çok parlak yeşil
+  static const Color _bearish = Color(0xFFFF3366); // Sert kararlı kırmızı
   static const Color _warning = Color(0xFFFFD32A);
 
   static ThemeData get darkTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      textTheme: GoogleFonts.interTextTheme(
+        ThemeData.dark().textTheme.copyWith(
+          headlineLarge: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          headlineMedium: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
+          titleLarge: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700),
+          titleMedium: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+          bodyLarge: const TextStyle(color: Colors.white, fontSize: 14),
+          bodyMedium: const TextStyle(color: Color(0xFFB0B3C8), fontSize: 13),
+          labelSmall: const TextStyle(color: Color(0xFF8890B0), fontSize: 11, letterSpacing: 0.2),
+        )
+      ),
       colorScheme: const ColorScheme.dark(
         primary: _primary,
         surface: _surface,
@@ -53,18 +66,9 @@ class AppTheme {
         iconTheme: IconThemeData(color: Colors.white.withValues(alpha: 0.8)),
       ),
       dividerTheme: DividerThemeData(
-        color: Colors.white.withValues(alpha: 0.08),
+        color: Colors.white.withValues(alpha: 0.05),
         thickness: 1,
         space: 1,
-      ),
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w800),
-        headlineMedium: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
-        titleLarge: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
-        titleMedium: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w500),
-        bodyLarge: TextStyle(color: Colors.white, fontSize: 14),
-        bodyMedium: TextStyle(color: Color(0xFFB0B3C8), fontSize: 13),
-        labelSmall: TextStyle(color: Color(0xFF6B6F8E), fontSize: 11),
       ),
     );
   }
