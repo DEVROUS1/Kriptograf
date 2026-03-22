@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/ai_provider.dart';
 import '../../data/models/signal_model.dart';
+import 'common/shimmer_card.dart';
 
 class SignalWidget extends ConsumerWidget {
   const SignalWidget({super.key});
@@ -36,10 +37,7 @@ class SignalWidget extends ConsumerWidget {
           ),
           signalAsync.when(
             data: (s) => _SignalBody(signal: s),
-            loading: () => const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-            ),
+            loading: () => const ShimmerCard(height: 140),
             error: (_, __) => const SizedBox(height: 40),
           ),
           anomalyAsync.when(

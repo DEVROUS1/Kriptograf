@@ -6,8 +6,8 @@ import '../../config/app_config.dart';
 final dioProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
     baseUrl: AppConfig.httpBaseUrl,
-    connectTimeout: const Duration(seconds: 10),
-    receiveTimeout: const Duration(seconds: 15),
+    connectTimeout: const Duration(seconds: 25),
+    receiveTimeout: const Duration(seconds: 25),
   ));
   
   return dio;

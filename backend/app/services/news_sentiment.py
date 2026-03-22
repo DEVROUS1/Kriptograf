@@ -5,11 +5,10 @@ import urllib.parse
 from datetime import datetime
 
 HABER_KAYNAKLARI = [
-    "https://feeds.feedburner.com/CoinDesk",
+    "https://tr.investing.com/rss/news_301.rss",
+    "https://cryptopanic.com/news/rss/",
     "https://cointelegraph.com/rss",
-    "https://www.cointurk.com/feed",
-    "https://bitcoinhaber.net/feed",
-    "https://kriptokoin.com/feed",
+    "https://feeds.feedburner.com/CoinDesk"
 ]
 
 POZITIF = [
@@ -54,7 +53,7 @@ async def _fetch_feed(url: str) -> list[dict]:
         results = []
         for e in feed.entries[:5]:
             baslik = e.get("title", "")
-            if "coindesk" in url.lower() or "cointelegraph" in url.lower():
+            if "investing" not in url.lower():
                 baslik = await _translate_to_tr(baslik)
                 
             results.append({

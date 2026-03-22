@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../providers/ai_provider.dart';
+import 'common/shimmer_card.dart';
 
 class AiSummaryWidget extends ConsumerWidget {
   const AiSummaryWidget({super.key});
@@ -32,7 +33,7 @@ class AiSummaryWidget extends ConsumerWidget {
                   fontStyle: FontStyle.italic,
                 ),
               ),
-              loading: () => const _Iskelet(),
+              loading: () => const Padding(padding: EdgeInsets.only(bottom: 12), child: ShimmerCard(height: 80)),
               error: (_, __) => const Row(
                 children: [
                   Icon(Icons.warning_amber_rounded, size: 14, color: AppTheme.warning),
@@ -97,34 +98,4 @@ class _Baslik extends StatelessWidget {
   }
 }
 
-class _Iskelet extends StatelessWidget {
-  const _Iskelet();
 
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _Line(width: double.infinity),
-        SizedBox(height: 6),
-        _Line(width: double.infinity),
-        SizedBox(height: 6),
-        _Line(width: 220),
-      ],
-    );
-  }
-}
-
-class _Line extends StatelessWidget {
-  const _Line({required this.width});
-  final double width;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        width: width, height: 12,
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.06),
-          borderRadius: BorderRadius.circular(4),
-        ),
-      );
-}
