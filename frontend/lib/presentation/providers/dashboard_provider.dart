@@ -8,6 +8,7 @@ enum DashTab {
   onchain,
   piyasalar,
   isiHaritasi,
+  likidasyon,
   portfoy,
   balina,
 }
@@ -20,6 +21,7 @@ extension DashTabExt on DashTab {
         DashTab.onchain => 'On-Chain',
         DashTab.piyasalar => 'Piyasalar',
         DashTab.isiHaritasi => 'Isı Hrt',
+        DashTab.likidasyon => 'Likidite',
         DashTab.portfoy => 'Portföy',
         DashTab.balina => 'Balina',
       };
@@ -31,6 +33,7 @@ extension DashTabExt on DashTab {
         DashTab.onchain => Icons.link_rounded,
         DashTab.piyasalar => Icons.bar_chart_rounded,
         DashTab.isiHaritasi => Icons.grid_view_rounded,
+        DashTab.likidasyon => Icons.local_fire_department_rounded,
         DashTab.portfoy => Icons.account_balance_wallet_rounded,
         DashTab.balina => Icons.waves_rounded,
       };

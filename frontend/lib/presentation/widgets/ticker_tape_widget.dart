@@ -18,7 +18,7 @@ class _TickerTapeWidgetState extends ConsumerState<TickerTapeWidget> with Single
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 100))..repeat();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 240))..repeat();
     _controller.addListener(() {
       if (_scrollController.hasClients) {
         double maxScroll = _scrollController.position.maxScrollExtent;
@@ -40,8 +40,8 @@ class _TickerTapeWidgetState extends ConsumerState<TickerTapeWidget> with Single
     final markets = ref.watch(marketListProvider);
     if (markets.isEmpty) return const SizedBox();
 
-    final topMarkets = markets.take(30).toList();
-    final repeatedMarkets = [...topMarkets, ...topMarkets, ...topMarkets]; // Loop illusion
+    final topMarkets = markets.take(20).toList();
+    final repeatedMarkets = [...topMarkets, ...topMarkets, ...topMarkets, ...topMarkets]; // Smoother illusion
 
     return Container(
       height: 28,

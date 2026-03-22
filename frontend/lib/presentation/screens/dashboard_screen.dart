@@ -6,6 +6,7 @@ import '../../core/theme/app_theme.dart';
 import '../widgets/coin_selector.dart';
 import '../widgets/live_price_widget.dart';
 import '../screens/heatmap_screen.dart';
+import '../screens/liquidation_screen.dart';
 import '../widgets/ticker_tape_widget.dart';
 import '../widgets/cvd_widget.dart';
 import '../widgets/connection_status_widget.dart';
@@ -259,8 +260,9 @@ class _GenisMerkez extends ConsumerWidget {
       case DashTab.onchain: return 2;
       case DashTab.piyasalar: return 3;
       case DashTab.isiHaritasi: return 4;
-      case DashTab.portfoy: return 5;
-      case DashTab.balina: return 6;
+      case DashTab.likidasyon: return 5;
+      case DashTab.portfoy: return 6;
+      case DashTab.balina: return 7;
     }
   }
 
@@ -276,8 +278,9 @@ class _GenisMerkez extends ConsumerWidget {
         _OnchainMerkez(),            // Index 2
         MarketsScreen(),             // Index 3
         HeatmapScreen(),             // Index 4
-        PortfolioScreen(),           // Index 5
-        WhaleScreen(),               // Index 6
+        LiquidationScreen(),         // Index 5
+        PortfolioScreen(),           // Index 6
+        WhaleScreen(),               // Index 7
       ],
     );
   }
@@ -554,9 +557,11 @@ class _MobilIcerik extends ConsumerWidget {
         MarketsScreen(),
         // Tab 5: IsiHaritasi
         HeatmapScreen(),
-        // Tab 6: Portfoy
+        // Tab 6: Likidasyon
+        LiquidationScreen(),
+        // Tab 7: Portfoy
         PortfolioScreen(),
-        // Tab 7: Balina
+        // Tab 8: Balina
         WhaleScreen(),
       ],
     );
