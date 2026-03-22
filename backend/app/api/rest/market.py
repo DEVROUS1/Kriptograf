@@ -76,22 +76,11 @@ async def piyasalar():
                     "islem_sayisi": int(d.get("count", 0)),
                 }
 
-    sem = asyncio.Semaphore(15)
-
-    async def _safe_mini_kline(s):
-        async with sem:
-            return s, await _mini_kline(s)
-
-    kline_tasks = [_safe_mini_kline(s) for s in IZLENEN_SEMBOLLER]
-    klines_results = await asyncio.gather(*kline_tasks)
-    
-    klines_dict = {k: v for k, v in klines_results}
-
     sonuc = []
     for s in IZLENEN_SEMBOLLER:
         if s in ticker_dict:
             t = ticker_dict[s]
-            t["sparkline"] = klines_dict.get(s, [])
+            t["sparkline"] = [] # Sparklines skip for performance optimization
             sonuc.append(t)
 
     sonuc.sort(key=lambda x: x["hacim_usdt"], reverse=True)
