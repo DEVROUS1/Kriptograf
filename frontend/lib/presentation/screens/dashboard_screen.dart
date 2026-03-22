@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../widgets/coin_selector.dart';
 import '../widgets/live_price_widget.dart';
+import '../widgets/ticker_tape_widget.dart';
 import '../widgets/cvd_widget.dart';
 import '../widgets/connection_status_widget.dart';
 import '../widgets/tradingview_chart.dart';
@@ -65,10 +66,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     Widget body = genis
         ? const Column(children: [
             _TopBar(),
+            TickerTapeWidget(),
             ConnectionStatusWidget(),
             Expanded(child: _GenisDuzen()),
           ])
-        : const _MobilIcerik();
+        : const Column(children: [
+            TickerTapeWidget(),
+            Expanded(child: _MobilIcerik()),
+          ]);
 
     Widget content = Scaffold(
       backgroundColor: AppTheme.background,
