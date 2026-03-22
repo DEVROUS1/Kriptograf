@@ -5,6 +5,7 @@ import '../../core/utils/formatters.dart';
 import '../providers/selected_coin_provider.dart';
 import '../providers/market_provider.dart';
 import '../widgets/common/shimmer_card.dart';
+import '../widgets/liquidity_heatmap_widget.dart' show liquidityProvider;
 
 class LiquidationScreen extends ConsumerStatefulWidget {
   const LiquidationScreen({super.key});
@@ -24,27 +25,8 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
     if (markets.isEmpty) {
       return const ShimmerCard(height: double.infinity);
     }
-
-    final price = market.price;
-    // Gerçekçi bir likidasyon dağılımı için hacmi (volume) baz alan bir hesaplama:
-    // Örneğin günlük hacmin belli bir yüzdesi farklı kaldıraç oranlarındaki likiditeleri temsil edebilir.
-    final baseLiqUsd = (market.volume * market.price) / 1000000; // Milyon dolar cinsinden 24S hacim
-    final double scale = (baseLiqUsd * 0.05).clamp(0.5, 3500.0); // Hacmin %5'ini likidasyon skalası alıyoruz
-
-    final List<Map<String, dynamic>> shortLiqs = [
-      {'fiyat': price * 1.015, 'milyon': scale * 0.12, 'kaldirac': '100x'},
-      {'fiyat': price * 1.035, 'milyon': scale * 0.35, 'kaldirac': '50x'},
-      {'fiyat': price * 1.060, 'milyon': scale * 0.70, 'kaldirac': '25x'},
-      {'fiyat': price * 1.110, 'milyon': scale * 1.45, 'kaldirac': '10x'},
-    ];
-    final List<Map<String, dynamic>> longLiqs = [
-      {'fiyat': price * 0.985, 'milyon': scale * 0.15, 'kaldirac': '100x'},
-      {'fiyat': price * 0.965, 'milyon': scale * 0.42, 'kaldirac': '50x'},
-      {'fiyat': price * 0.935, 'milyon': scale * 0.85, 'kaldirac': '25x'},
-      {'fiyat': price * 0.880, 'milyon': scale * 1.60, 'kaldirac': '10x'},
-    ];
-
-    double maxMilyon = scale * 1.8; // Isı haritası için barın taşmamasını sağlayan referans max
+    
+    final dataAsync = ref.watch(liquidityProvider);
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -61,59 +43,25 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
               children: [
                 const Icon(Icons.local_fire_department_rounded, color: AppTheme.warning),
                 const SizedBox(width: 8),
-                Text('${coin.symbol} LİKİDASYON ISI HARİTASI (Algoritmik)',
-                    style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
+                Text('${coin.symbol} LİKİDİTE DERİNLİK HARİTASI (Gerçek-Zamanlı)',
+                    style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white, fontSize: 13)),
                 const Spacer(),
-                const Text('Canlı', style: TextStyle(color: AppTheme.bullish, fontSize: 12, fontWeight: FontWeight.bold)),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                  decoration: BoxDecoration(color: AppTheme.primary.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(4)),
+                  child: const Text('Binance Futures API', style: TextStyle(color: AppTheme.primary, fontSize: 10, fontWeight: FontWeight.bold)),
+                ),
               ],
             ),
           ),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  // Ortadaki ana çizgi
-                  Positioned(
-                    left: 60,
-                    right: 60,
-                    child: Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
-                  ),
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      // SHORT Likidasyonları (Tepede)
-                      ...shortLiqs.reversed.map((e) => _buildHeatBar(e, price, maxMilyon, AppTheme.warning, true)),
-                      
-                      // Mevcut Fiyat
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-                              ),
-                              child: Text(
-                                '\$${Formatters.formatKriptoFiyat(price)}',
-                                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      // LONG Likidasyonları (Altta)
-                      ...longLiqs.map((e) => _buildHeatBar(e, price, maxMilyon, AppTheme.bullish, false)),
-                    ],
-                  ),
-                ],
+            child: dataAsync.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.all(16.0),
+                child: ShimmerCard(height: double.infinity),
               ),
+              error: (err, stack) => Center(child: Text('Veri alınamadı: $err', style: const TextStyle(color: AppTheme.bearish))),
+              data: (data) => _buildRealHeatmap(context, data, market.price),
             ),
           ),
         ],
@@ -121,14 +69,89 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
     );
   }
 
-  Widget _buildHeatBar(Map<String, dynamic> data, double currentPrice, double max, Color baseColor, bool isShort) {
-    final double milyon = data['milyon'];
-    final double f = data['fiyat'];
-    final double ratio = (milyon / max).clamp(0.1, 1.0);
+  Widget _buildRealHeatmap(BuildContext context, Map<String, dynamic> data, double currentPrice) {
+    // API'den gelen gerçek Satış (Direnç) ve Alış (Destek) Duvarları
+    final satis = (data['satis_duvarlari'] as List).cast<Map<String, dynamic>>();
+    final alis = (data['alis_duvarlari'] as List).cast<Map<String, dynamic>>();
+
+    double maxUsd = 1.0;
     
-    // Yüzde hesabı
+    List<Map<String, dynamic>> parseWall(List<Map<String, dynamic>> walls) {
+      return walls.map((w) {
+        final double fiyat = (w['fiyat'] as num).toDouble();
+        final double miktar = (w['miktar'] as num).toDouble();
+        final double usd = fiyat * miktar;
+        if (usd > maxUsd) maxUsd = usd;
+        return {'fiyat': fiyat, 'usd': usd};
+      }).toList();
+    }
+
+    final shortLiqs = parseWall(satis);
+    // Shortları en uzaktan en yakına doğru sıralamak (artan sırayla fiyat)
+    shortLiqs.sort((a, b) => (b['fiyat'] as double).compareTo(a['fiyat'] as double));
+    
+    final longLiqs = parseWall(alis);
+    // Longları fiyata en yakından uzağa doğru sıralamak (azalan sırayla fiyat)
+    longLiqs.sort((a, b) => (b['fiyat'] as double).compareTo(a['fiyat'] as double));
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          Positioned(
+            left: 60, right: 60,
+            child: Container(height: 1, color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ...shortLiqs.take(7).map((e) => _buildHeatBar(e, currentPrice, maxUsd, AppTheme.warning, true)),
+                
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                        ),
+                        child: Text(
+                          '\$${Formatters.formatKriptoFiyat(currentPrice)}',
+                          style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                ...longLiqs.take(7).map((e) => _buildHeatBar(e, currentPrice, maxUsd, AppTheme.bullish, false)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeatBar(Map<String, dynamic> data, double currentPrice, double maxUsd, Color baseColor, bool isShort) {
+    final double usdValue = data['usd'];
+    final double f = data['fiyat'];
+    final double ratio = (usdValue / maxUsd).clamp(0.05, 1.0);
+    
     final double yuzde = ((f - currentPrice) / currentPrice) * 100;
     final String yuzdeStr = '${yuzde > 0 ? '+' : ''}${yuzde.toStringAsFixed(1)}%';
+
+    final milyonUsd = usdValue / 1000000;
+    final binUsd = usdValue / 1000;
+    final valueText = milyonUsd >= 1.0 
+      ? '${milyonUsd.toStringAsFixed(1)}M likidite' 
+      : '${binUsd.toStringAsFixed(0)}K likidite';
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
@@ -161,13 +184,13 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(milyon < 1.0 ? '${(milyon*1000).toStringAsFixed(0)}K likidite' : '${milyon.toStringAsFixed(1)}M likidite', 
+                      Text(valueText, 
                           style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
                         decoration: BoxDecoration(color: Colors.black45, borderRadius: BorderRadius.circular(4)),
-                        child: Text(data['kaldirac'], style: const TextStyle(color: Colors.white70, fontSize: 9)),
+                        child: Text(isShort ? 'DİRENÇ' : 'DESTEK', style: const TextStyle(color: Colors.white70, fontSize: 9)),
                       )
                     ],
                   ),
