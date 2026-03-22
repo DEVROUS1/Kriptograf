@@ -63,7 +63,7 @@ class WhaleStatsModel {
         satisSayisi: j['satis_sayisi'] as int,
         alisHacimUsd: (j['alis_hacim_usd'] as num).toInt(),
         satisHacimUsd: (j['satis_hacim_usd'] as num).toInt(),
-        baski: j['baskı'] as String,
+        baski: j['baski'] as String,
         islemler: (j['islemler'] as List)
             .map((e) => WhaleTradeModel.fromJson(e as Map<String, dynamic>))
             .toList(),

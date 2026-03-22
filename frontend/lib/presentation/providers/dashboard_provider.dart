@@ -7,6 +7,7 @@ enum DashTab {
   yapayZeka,
   onchain,
   piyasalar,
+  isiHaritasi,
   portfoy,
   balina,
 }
@@ -18,6 +19,7 @@ extension DashTabExt on DashTab {
         DashTab.yapayZeka => 'AI',
         DashTab.onchain => 'On-Chain',
         DashTab.piyasalar => 'Piyasalar',
+        DashTab.isiHaritasi => 'Isı Hrt',
         DashTab.portfoy => 'Portföy',
         DashTab.balina => 'Balina',
       };
@@ -28,6 +30,7 @@ extension DashTabExt on DashTab {
         DashTab.yapayZeka => Icons.auto_awesome_rounded,
         DashTab.onchain => Icons.link_rounded,
         DashTab.piyasalar => Icons.bar_chart_rounded,
+        DashTab.isiHaritasi => Icons.grid_view_rounded,
         DashTab.portfoy => Icons.account_balance_wallet_rounded,
         DashTab.balina => Icons.waves_rounded,
       };

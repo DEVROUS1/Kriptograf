@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
 import '../widgets/coin_selector.dart';
 import '../widgets/live_price_widget.dart';
+import '../screens/heatmap_screen.dart';
 import '../widgets/ticker_tape_widget.dart';
 import '../widgets/cvd_widget.dart';
 import '../widgets/connection_status_widget.dart';
@@ -257,8 +258,9 @@ class _GenisMerkez extends ConsumerWidget {
       case DashTab.yapayZeka: return 1;
       case DashTab.onchain: return 2;
       case DashTab.piyasalar: return 3;
-      case DashTab.portfoy: return 4;
-      case DashTab.balina: return 5;
+      case DashTab.isiHaritasi: return 4;
+      case DashTab.portfoy: return 5;
+      case DashTab.balina: return 6;
     }
   }
 
@@ -269,12 +271,13 @@ class _GenisMerkez extends ConsumerWidget {
     return IndexedStack(
       index: getIndex(aktif),
       children: const [
-        _MasaustuPanelAnalizOrtak(), // Index 0 (Hem Panel Hem Analiz için aynı iframe'i paylaştıran yapı)
+        _MasaustuPanelAnalizOrtak(), // Index 0
         _YapayZekaMerkez(),          // Index 1
         _OnchainMerkez(),            // Index 2
         MarketsScreen(),             // Index 3
-        PortfolioScreen(),           // Index 4
-        WhaleScreen(),               // Index 5
+        HeatmapScreen(),             // Index 4
+        PortfolioScreen(),           // Index 5
+        WhaleScreen(),               // Index 6
       ],
     );
   }
@@ -549,9 +552,11 @@ class _MobilIcerik extends ConsumerWidget {
         ),
         // Tab 4: Piyasalar
         MarketsScreen(),
-        // Tab 5: Portfoy
+        // Tab 5: IsiHaritasi
+        HeatmapScreen(),
+        // Tab 6: Portfoy
         PortfolioScreen(),
-        // Tab 6: Balina
+        // Tab 7: Balina
         WhaleScreen(),
       ],
     );
