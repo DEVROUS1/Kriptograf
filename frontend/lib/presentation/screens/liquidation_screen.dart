@@ -26,20 +26,25 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
     }
 
     final price = market.price;
+    // Gerçekçi bir likidasyon dağılımı için hacmi (volume) baz alan bir hesaplama:
+    // Örneğin günlük hacmin belli bir yüzdesi farklı kaldıraç oranlarındaki likiditeleri temsil edebilir.
+    final baseLiqUsd = (market.volume * market.price) / 1000000; // Milyon dolar cinsinden 24S hacim
+    final double scale = (baseLiqUsd * 0.05).clamp(0.5, 3500.0); // Hacmin %5'ini likidasyon skalası alıyoruz
+
     final List<Map<String, dynamic>> shortLiqs = [
-      {'fiyat': price * 1.01, 'milyon': 25.4, 'kaldirac': '100x'},
-      {'fiyat': price * 1.02, 'milyon': 68.2, 'kaldirac': '50x'},
-      {'fiyat': price * 1.05, 'milyon': 140.5, 'kaldirac': '20x'},
-      {'fiyat': price * 1.10, 'milyon': 350.8, 'kaldirac': '10x'},
+      {'fiyat': price * 1.015, 'milyon': scale * 0.12, 'kaldirac': '100x'},
+      {'fiyat': price * 1.035, 'milyon': scale * 0.35, 'kaldirac': '50x'},
+      {'fiyat': price * 1.060, 'milyon': scale * 0.70, 'kaldirac': '25x'},
+      {'fiyat': price * 1.110, 'milyon': scale * 1.45, 'kaldirac': '10x'},
     ];
     final List<Map<String, dynamic>> longLiqs = [
-      {'fiyat': price * 0.99, 'milyon': 30.1, 'kaldirac': '100x'},
-      {'fiyat': price * 0.98, 'milyon': 85.6, 'kaldirac': '50x'},
-      {'fiyat': price * 0.95, 'milyon': 180.2, 'kaldirac': '20x'},
-      {'fiyat': price * 0.90, 'milyon': 290.0, 'kaldirac': '10x'},
+      {'fiyat': price * 0.985, 'milyon': scale * 0.15, 'kaldirac': '100x'},
+      {'fiyat': price * 0.965, 'milyon': scale * 0.42, 'kaldirac': '50x'},
+      {'fiyat': price * 0.935, 'milyon': scale * 0.85, 'kaldirac': '25x'},
+      {'fiyat': price * 0.880, 'milyon': scale * 1.60, 'kaldirac': '10x'},
     ];
 
-    double maxMilyon = 400.0; // Isı haritası için maksimum referans
+    double maxMilyon = scale * 1.8; // Isı haritası için barın taşmamasını sağlayan referans max
 
     return Container(
       margin: const EdgeInsets.fromLTRB(16, 0, 16, 16),
@@ -56,7 +61,7 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
               children: [
                 const Icon(Icons.local_fire_department_rounded, color: AppTheme.warning),
                 const SizedBox(width: 8),
-                Text('${coin.symbol} LİKİDASYON ISI HARİTASI (Tahmini)',
+                Text('${coin.symbol} LİKİDASYON ISI HARİTASI (Algoritmik)',
                     style: const TextStyle(fontWeight: FontWeight.w800, color: Colors.white)),
                 const Spacer(),
                 const Text('Canlı', style: TextStyle(color: AppTheme.bullish, fontSize: 12, fontWeight: FontWeight.bold)),
@@ -131,7 +136,7 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
-            width: 60,
+            width: 70,
             child: Text('\$${Formatters.formatKriptoFiyat(f)}', 
                 style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11)),
           ),
@@ -156,7 +161,7 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('${milyon.toStringAsFixed(1)}M likidite', 
+                      Text(milyon < 1.0 ? '${(milyon*1000).toStringAsFixed(0)}K likidite' : '${milyon.toStringAsFixed(1)}M likidite', 
                           style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700)),
                       const SizedBox(width: 8),
                       Container(
@@ -171,7 +176,7 @@ class _LiquidationScreenState extends ConsumerState<LiquidationScreen> {
             ),
           ),
           SizedBox(
-            width: 60,
+            width: 50,
             child: Text(yuzdeStr, 
                 textAlign: TextAlign.right,
                 style: TextStyle(color: isShort ? AppTheme.warning : AppTheme.bullish, fontSize: 11, fontWeight: FontWeight.bold)),
