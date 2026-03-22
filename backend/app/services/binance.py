@@ -145,7 +145,10 @@ async def stream_markets(room: str):
                         {
                             "symbol": d["s"],
                             "price": float(d["c"]),
-                            "change_percent": float(d["P"])
+                            "change_percent": float(d["P"]),
+                            "volume": float(d.get("q", 0)),
+                            "high_24h": float(d.get("h", 0)),
+                            "low_24h": float(d.get("l", 0))
                         } for d in data if d["s"].endswith("USDT")
                     ][:50]
                     await ws_manager.broadcast(json.dumps(payload), room)

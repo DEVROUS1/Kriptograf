@@ -52,6 +52,9 @@ class MarketListNotifier extends StateNotifier<List<MarketModel>> {
               currentState[index] = currentState[index].copyWith(
                 price: parsed.price,
                 changePercent: parsed.changePercent,
+                volume: parsed.volume,
+                high24h: parsed.high24h,
+                low24h: parsed.low24h,
               );
             } else {
               currentState.add(parsed);
